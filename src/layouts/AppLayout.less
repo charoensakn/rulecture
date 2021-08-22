@@ -1,0 +1,83 @@
+.AppLayout {
+  display: flex;
+  min-height: 100vh;
+
+  .AppLayout__Header {
+    background-color: #10239e;
+    color: white;
+    padding: 0 17px;
+    display: flex;
+    height: 45px;
+
+    a {
+      color: white;
+    }
+
+    .AppLayout__Button {
+      font-size: 1.3rem;
+      cursor: pointer;
+      background-color: #1d39c4;
+      border-radius: 3px;
+      padding: 6px;
+      margin-top: 20px;
+
+      &:hover {
+        background-color: #2f54eb;
+      }
+    }
+
+    .AppLayout__Popover {
+      height: 43px;
+    }
+
+    .ant-breadcrumb {
+      margin-top: 2px;
+    }
+
+    .AppLayout__Link a,
+    .ant-breadcrumb-separator {
+      color: rgba(255, 255, 255, 0.8) !important;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .AppLayout__Link a:hover,
+    .AppLayout__Link--current {
+      color: white !important;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .AppLayout__Fill {
+      flex: 1;
+    }
+
+    .MyAvatar {
+      cursor: pointer;
+    }
+  }
+
+  .AppLayout__Content {
+    flex: 1;
+  }
+
+  .AppLayout__Footer {
+    text-align: center;
+    color: rgba(0, 0, 0, 0.25);
+    padding: 25px 0;
+  }
+}
+
+.AppLayout__PopoverMenu {
+  .ant-menu {
+    border: 0;
+
+    .ant-menu-item {
+      padding: 0;
+    }
+  }
+
+  .ant-divider {
+    margin: 0;
+  }
+}
