@@ -1,12 +1,12 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import i18n from 'i18next';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import './index.less';
-import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import App from './App';
 import { resources } from './i18n';
+import './index.less';
 
 (async () => {
   const firebaseConfig = await fetch('/__/firebase/init.json');
