@@ -21,7 +21,7 @@ export function LogoutPage() {
       <Space direction='vertical' size='large'>
         <Row>
           <Col span={24}>
-            <h2>{loggedOut ? 'ออกจากระบบเรียบร้อยแล้ว' : 'กำลังออกจากระบบ'}</h2>
+            <h3>{loggedOut ? 'ออกจากระบบเรียบร้อยแล้ว' : 'กำลังออกจากระบบ'}</h3>
           </Col>
         </Row>
         <Row>

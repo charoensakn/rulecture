@@ -8,6 +8,29 @@ const { IgnorePlugin } = require('webpack');
 
 const mode = process.env.NODE_ENV || 'development';
 
+const plugins = [
+  new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }), //
+  new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/index.html'), inject: 'body' }),
+  new CopyWebpackPlugin({
+    patterns: [
+      { from: 'static', to: '.' }
+    ],
+  }),
+  new IgnorePlugin(/^\.\/app-check$/, /firebase$/),
+  new IgnorePlugin(/^\.\/analytics$/, /firebase$/),
+  new IgnorePlugin(/^\.\/functions$/, /firebase$/),
+  new IgnorePlugin(/^\.\/remote-config$/, /firebase$/),
+  new IgnorePlugin(/^\.\/performance$/, /firebase$/),
+];
+
+if (mode !== 'development') {
+  plugins.push(new WorkboxPlugin.GenerateSW({
+    clientsClaim: true,
+    skipWaiting: true,
+    maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
+  }));
+}
+
 module.exports = {
   mode,
   devtool: mode === 'development' ? 'inline-source-map' : false,
@@ -51,25 +74,7 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
-  plugins: [
-    new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }), //
-    new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/index.html'), inject: 'body' }),
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'static', to: '.' }
-      ],
-    }),
-    new IgnorePlugin(/^\.\/app-check$/, /firebase$/),
-    new IgnorePlugin(/^\.\/analytics$/, /firebase$/),
-    new IgnorePlugin(/^\.\/functions$/, /firebase$/),
-    new IgnorePlugin(/^\.\/remote-config$/, /firebase$/),
-    new IgnorePlugin(/^\.\/performance$/, /firebase$/),
-    new WorkboxPlugin.GenerateSW({
-      clientsClaim: true,
-      skipWaiting: true,
-      maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
-    })
-  ],
+  plugins,
   output: {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'public'),

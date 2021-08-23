@@ -1,11 +1,12 @@
 import {
   BellFilled,
-  BellOutlined,
+  GithubOutlined,
   HomeFilled,
-  HomeOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
+  MailOutlined,
   MenuOutlined,
+  MessageOutlined,
   SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -116,7 +117,20 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
         <div className={className}>{children}</div>
       </Content>
       <Footer>
-        <div className='AppLayout__Footer'>แอปพลิเคชันนี้สำหรับการใช้งานส่วนบุคคลเท่านั้น</div>
+        <div className='AppLayout__Footer'>
+          <p>แอปพลิเคชันนี้สำหรับการใช้งานส่วนบุคคลเท่านั้น</p>
+          <Space direction='horizontal' size='middle'>
+            <a href='https://github.com/charoensakn/rulecture' target='_blank'>
+              <GithubOutlined />
+            </a>
+            <Popover content={<img src='/lineqrcode.png' alt='LINE' />} trigger='click'>
+              <MessageOutlined />
+            </Popover>
+            <a href='mailto:6302014482@rumail.ru.ac.th'>
+              <MailOutlined />
+            </a>
+          </Space>
+        </div>
       </Footer>
       <Drawer title='เมนูลัด' placement='left' closable onClose={() => setDrawerShowed(false)} visible={drawerShowed}>
         <p>Some contents...</p>

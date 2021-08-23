@@ -32,7 +32,7 @@ export function LoginPage() {
       <Space direction='vertical' size='large'>
         <img className='LoginPage__Logo' src='/icons-192.png' alt='Logo' />
         <h2>RU Lecture</h2>
-        <strong>แอปพลิเคชันสำหรับเผยแพร่สื่อการเรียนต่างๆ สำหรับนักศึกษามหาวิทยาลัยรามคำแหง</strong>
+        <h3>แอปพลิเคชันสำหรับเผยแพร่สื่อการเรียนต่างๆ สำหรับนักศึกษามหาวิทยาลัยรามคำแหง</h3>
         {auth.uid ? (
           <Redirect to={{ pathname: '/signed-in', search: `redirect=${q.get('redirect')}` }} />
         ) : (

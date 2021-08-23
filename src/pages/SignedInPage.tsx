@@ -29,7 +29,7 @@ export function SignedInPage() {
     <BoxLayout className='SignedInPage'>
       <Space className='SignedInPage__Space' direction='vertical' size='large'>
         <MyAvatar size={72} />
-        <h2>{auth.displayName}</h2>
+        <h3>{auth.displayName}</h3>
         <Divider />
         {Object.keys(vals).map((key) => (
           <Row key={key}>

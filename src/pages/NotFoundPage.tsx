@@ -1,8 +1,6 @@
-import { Col, Row, Space, Typography } from 'antd';
+import { Col, Row, Space } from 'antd';
 import { Link } from 'react-router-dom';
 import { BoxLayout } from '../layouts/BoxLayout';
-
-const { Title } = Typography;
 
 export function NotFoundPage() {
   return (
@@ -10,7 +8,7 @@ export function NotFoundPage() {
       <Space direction='vertical' size='large'>
         <Row>
           <Col span={24}>
-            <Title level={5}>ไม่พบหน้าที่คุณกำลังเรียก หน้าอาจถูกย้ายหรือถูกลบไปแล้ว</Title>
+            <h3>ไม่พบหน้าที่คุณกำลังเรียก หน้าอาจถูกย้ายหรือถูกลบไปแล้ว</h3>
           </Col>
         </Row>
         <Row>
