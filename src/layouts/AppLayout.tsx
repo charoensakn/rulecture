@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import { MyAvatar } from '../components/MyAvatar';
 import { AuthContext } from '../ctx';
 import './AppLayout.less';
+import { lineqrcode } from '../assets';
 
 const { Header, Footer, Content } = Layout;
 const { Item } = Menu;
@@ -123,7 +124,7 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
             <a href='https://github.com/charoensakn/rulecture' target='_blank'>
               <GithubOutlined />
             </a>
-            <Popover content={<img src='/lineqrcode.png' alt='LINE' />} trigger='click'>
+            <Popover content={<img src={lineqrcode} alt='LINE' />} trigger='click'>
               <MessageOutlined />
             </Popover>
             <a href='mailto:6302014482@rumail.ru.ac.th'>

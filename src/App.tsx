@@ -3,6 +3,7 @@ import 'firebase/auth';
 import React, { useCallback, useContext, useState } from 'react';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 import './App.less';
+import { ScrollToTop } from './components/ScrollToTop';
 import { Auth, AuthContext, LoginFn, LogoutFn } from './ctx';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
@@ -77,6 +78,7 @@ function App() {
     <AuthContext.Provider value={{ auth, login, logout }}>
       <div className='App'>
         <Router>
+          <ScrollToTop />
           <Switch>
             <Route path='/login'>
               <LoginPage />
