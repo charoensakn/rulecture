@@ -7,21 +7,22 @@ import { initReactI18next } from 'react-i18next';
 import App from './App';
 import { resources } from './i18n';
 import './index.less';
+import { localStorage } from './util';
+
+const LASTFIREBASECONFIG_KEY = 'lastfirebasecfg';
 
 (async () => {
-  const firebaseConfig = await fetch('/__/firebase/init.json');
-  firebase.initializeApp(await firebaseConfig.json());
+  let firebaseConfig;
+  try {
+    const response = await fetch('/__/firebase/init.json');
+    firebaseConfig = await response.json();
+    localStorage.set(LASTFIREBASECONFIG_KEY, firebaseConfig);
+  } catch {
+    firebaseConfig = localStorage.get(LASTFIREBASECONFIG_KEY);
+  }
+  firebase.initializeApp(firebaseConfig);
   if (window.location.hostname.indexOf('localhost') >= 0) {
     firebase.auth().useEmulator('http://localhost:9099');
-  } else {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/service-worker.js')
-          .then(() => console.log('[global] SW registered.'))
-          .catch(() => console.log('[global] SW registration failed.'));
-      });
-    }
   }
 
   await i18n.use(initReactI18next).init({

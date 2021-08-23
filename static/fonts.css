@@ -1,0 +1,223 @@
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-Thin.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-ExtraLight.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-Light.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-Regular.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-Medium.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-SemiBold.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-Bold.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-ExtraBold.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url(./fonts/NotoSansThai-Black.ttf) format('truetype');
+  unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url(./fonts/NotoSans-Thin.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url(./fonts/NotoSans-ExtraLight.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(./fonts/NotoSans-Light.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./fonts/NotoSans-Regular.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./fonts/NotoSans-Medium.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./fonts/NotoSans-SemiBold.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fonts/NotoSans-Bold.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url(./fonts/NotoSans-ExtraBold.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url(./fonts/NotoSans-Black.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 100;
+  font-display: swap;
+  src: url(./fonts/NotoSans-ThinItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 200;
+  font-display: swap;
+  src: url(./fonts/NotoSans-ExtraLightItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url(./fonts/NotoSans-LightItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./fonts/NotoSans-RegularItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./fonts/NotoSans-MediumItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./fonts/NotoSans-SemiBoldItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fonts/NotoSans-BoldItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url(./fonts/NotoSans-ExtraBoldItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoSans';
+  font-style: italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url(./fonts/NotoSans-BlackItalic.ttf) format('truetype');
+  unicode-range: U+0000-0E00, U+0E5C-200B, U+200E-25CB, U+20CD-FFFD;
+}
+@font-face {
+  font-family: 'NotoMono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./fonts/NotoMono-Regular.ttf) format('truetype');
+}

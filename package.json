@@ -4,7 +4,7 @@
   "description": "RU Lecture Client (PWA)",
   "scripts": {
     "start": "firebase emulators:start",
-    "build": "webpack -w",
+    "build": "webpack",
     "build-prod": "NODE_ENV=production webpack",
     "deploy": "firebase deploy --only hosting",
     "deploy-all": "firebase deploy"

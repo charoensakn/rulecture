@@ -8,28 +8,6 @@ const { IgnorePlugin } = require('webpack');
 
 const mode = process.env.NODE_ENV || 'development';
 
-const plugins = [
-  new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }), //
-  new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/index.html'), inject: 'body' }),
-  new CopyWebpackPlugin({
-    patterns: [
-      { from: 'static', to: '.' }
-    ],
-  }),
-  new IgnorePlugin(/^\.\/app-check$/, /firebase$/),
-  new IgnorePlugin(/^\.\/analytics$/, /firebase$/),
-  new IgnorePlugin(/^\.\/functions$/, /firebase$/),
-  new IgnorePlugin(/^\.\/remote-config$/, /firebase$/),
-  new IgnorePlugin(/^\.\/performance$/, /firebase$/),
-];
-if (mode !== 'development') {
-  plugins.push(new WorkboxPlugin.GenerateSW({
-    clientsClaim: true,
-    skipWaiting: true,
-    maximumFileSizeToCacheInBytes: 5242880,
-  }));
-}
-
 module.exports = {
   mode,
   devtool: mode === 'development' ? 'inline-source-map' : false,
@@ -51,14 +29,47 @@ module.exports = {
       },
       {
         test: /\.less$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'less-loader'],
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          {
+            loader: 'css-loader'
+          },
+          {
+            loader: 'less-loader',
+            options: {
+              lessOptions: {
+                javascriptEnabled: true
+              }
+            }
+          }
+        ],
       },
     ],
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
-  plugins,
+  plugins: [
+    new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }), //
+    new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/index.html'), inject: 'body' }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'static', to: '.' }
+      ],
+    }),
+    new IgnorePlugin(/^\.\/app-check$/, /firebase$/),
+    new IgnorePlugin(/^\.\/analytics$/, /firebase$/),
+    new IgnorePlugin(/^\.\/functions$/, /firebase$/),
+    new IgnorePlugin(/^\.\/remote-config$/, /firebase$/),
+    new IgnorePlugin(/^\.\/performance$/, /firebase$/),
+    new WorkboxPlugin.GenerateSW({
+      clientsClaim: true,
+      skipWaiting: true,
+      maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
+    })
+  ],
   output: {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'public'),
