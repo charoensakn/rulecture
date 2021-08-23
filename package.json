@@ -18,7 +18,7 @@
     "@types/react": "^17.0.18",
     "@types/react-dom": "^17.0.9",
     "@types/react-router-dom": "^5.1.8",
-    "antd": "^4.16.12",
+    "antd": "^4.16.13",
     "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^6.2.0",
     "file-loader": "^6.2.0",
