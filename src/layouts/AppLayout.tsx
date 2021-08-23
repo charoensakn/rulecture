@@ -21,8 +21,6 @@ const { Header, Footer, Content } = Layout;
 const { Item } = Menu;
 
 export function AppLayout({ className, children }: PropsWithChildren<{ className?: string }>) {
-  const [homeSelected, setHomeSelected] = useState(false);
-  const [bellSelected, setBellSelected] = useState(false);
   const [drawerShowed, setDrawerShowed] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -90,34 +88,26 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
           <Space size='small'>
             <MenuOutlined className='AppLayout__Button' onClick={() => setDrawerShowed(true)} />
             <Link to='/'>
-              {homeSelected ? (
-                <HomeFilled className='AppLayout__Button' onMouseLeave={() => setHomeSelected(false)} />
-              ) : (
-                <HomeOutlined className='AppLayout__Button' onMouseEnter={() => setHomeSelected(true)} />
-              )}
+              <HomeFilled className='AppLayout__Button' />
             </Link>
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
           <div className='AppLayout__Fill'></div>
           <Space size='small'>
             <Popover placement='bottomRight' title='ข้อมูลแอป' content={information} trigger='click'>
-              <span className='AppLayout__Popover'>
+              <div className='AppLayout__Popover'>
                 <InfoCircleOutlined className='AppLayout__Button' />
-              </span>
+              </div>{' '}
             </Popover>
             <Popover placement='bottomRight' title='แจ้งเตือน' content={notification} trigger='click'>
-              <span className='AppLayout__Popover'>
-                {bellSelected ? (
-                  <BellFilled className='AppLayout__Button' onMouseLeave={() => setBellSelected(false)} />
-                ) : (
-                  <BellOutlined className='AppLayout__Button' onMouseEnter={() => setBellSelected(true)} />
-                )}
-              </span>
+              <div className='AppLayout__Popover'>
+                <BellFilled className='AppLayout__Button' />
+              </div>
             </Popover>
             <Popover content={avatarMenu} title='ข้อมูลผู้ใช้งาน' placement='bottomRight' trigger='click'>
-              <span className='AppLayout__Popover'>
+              <div className='AppLayout__Popover--avatar'>
                 <MyAvatar />
-              </span>
+              </div>
             </Popover>
           </Space>
         </Header>

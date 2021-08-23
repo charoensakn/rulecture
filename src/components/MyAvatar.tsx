@@ -11,7 +11,7 @@ export function MyAvatar({ size = 'default', shape = 'circle' }: PropsWithoutRef
     if (auth.photoURL) {
       child = <Avatar src={auth.photoURL} size={size} shape={shape} />;
     } else {
-      const matches = auth.displayName?.match(/([a-zA-Zก-ฮ])/);
+      const matches = auth.displayName?.match(/([A-Z])/);
       if (matches) {
         child = (
           <Avatar size={size} shape={shape}>
