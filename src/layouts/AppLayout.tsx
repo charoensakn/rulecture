@@ -8,7 +8,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Affix, Breadcrumb, Descriptions, Drawer, Empty, Layout, Menu, Space } from 'antd';
-import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
+import React, { Fragment, PropsWithChildren, useCallback, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MyAvatar } from '../components/MyAvatar';
@@ -22,6 +22,7 @@ const { Header, Content } = Layout;
 
 export function AppLayout({ className, children }: PropsWithChildren<{ className?: string }>) {
   const [drawerShowed, setDrawerShowed] = useState(false);
+  const [headerShowed, setHeaderShowed] = useState(true);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [informationText, setInformationText] = useState('');
@@ -29,6 +30,9 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
 
   const { auth } = useContext(AuthContext);
   const { t } = useTranslation();
+
+  let lastScrollY = 0;
+  let lastScrollTime = 0;
 
   useEffect(() => {
     const handleResize = () => {
@@ -39,8 +43,28 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
     if (!window.matchMedia('(display-mode: standalone)').matches) {
       setInformationText(t('applayout_info_installing_pwa'));
     }
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const scrollTime = Date.now();
+      if (scrollY > 100) {
+        const v = (scrollY - lastScrollY) / (scrollTime - lastScrollTime);
+        if (v < -0.2 && !headerShowed) {
+          setHeaderShowed(true);
+        } else if (v > 0.2 && headerShowed) {
+          setHeaderShowed(false);
+        }
+        lastScrollY = scrollY;
+        lastScrollTime = scrollTime;
+      } else if (!headerShowed) {
+        setHeaderShowed(true);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [headerShowed]);
 
   const links = [];
   if (windowWidth >= 768) {
@@ -91,7 +115,7 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
 
   return (
     <Layout className='AppLayout'>
-      <Affix>
+      <Affix className={headerShowed ? '' : 'AppLayout__Header--hide'}>
         <Header className='AppLayout__Header'>
           <Space size='small'>
             <MyHeaderIcon icon={<MenuOutlined />} onClick={() => setDrawerShowed(true)} />

@@ -1,7 +1,16 @@
 .AppLayout {
   position: relative;
-  display: flex;
-  min-height: 100vh;
+  min-height: 100vh !important;
+
+  .ant-affix {
+    transition: all 0.35s ease-in-out;
+  }
+
+  .AppLayout__Header--hide {
+    .ant-affix {
+      top: -45px !important;
+    }
+  }
 
   .AppLayout__Header {
     color: white;
