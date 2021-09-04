@@ -1,37 +1,44 @@
 import {
   BellFilled,
-  GithubOutlined,
   HomeFilled,
   InfoCircleOutlined,
   LogoutOutlined,
-  MailOutlined,
   MenuOutlined,
-  MessageOutlined,
   SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Affix, Breadcrumb, Divider, Drawer, Layout, Menu, Popover, Space } from 'antd';
-import React, { PropsWithChildren, useContext, useEffect, useState } from 'react';
+import { Affix, Breadcrumb, Descriptions, Drawer, Empty, Layout, Menu, Space } from 'antd';
+import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MyAvatar } from '../components/MyAvatar';
+import { MyFooter } from '../components/MyFooter';
+import { MyHeaderIcon } from '../components/MyHeaderIcon';
 import { AuthContext } from '../ctx';
 import './AppLayout.less';
-import { lineqrcode } from '../assets';
+import packageJson from '../../package.json';
 
-const { Header, Footer, Content } = Layout;
-const { Item } = Menu;
+const { Header, Content } = Layout;
 
 export function AppLayout({ className, children }: PropsWithChildren<{ className?: string }>) {
   const [drawerShowed, setDrawerShowed] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  const [informationText, setInformationText] = useState('');
+  const [activeMenu, setActiveMenu] = useState(0);
 
   const { auth } = useContext(AuthContext);
   const { t } = useTranslation();
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      setWindowHeight(window.innerHeight);
+    };
     window.addEventListener('resize', handleResize);
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+      setInformationText(t('applayout_info_installing_pwa'));
+    }
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -56,29 +63,28 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
     </Breadcrumb.Item>
   );
 
-  const information = <div className='AppLayout__Information'>ยังไม่มีข้อมูล ณ ขณะนี้</div>;
-  const notification = <div className='AppLayout__PopoverMenu'>ยังไม่มีข้อความใหม่</div>;
+  const noti = <Empty description={t('applayout_noti_nodata')} />;
 
-  const avatarMenu = (
+  const account = (
     <div className='AppLayout__PopoverMenu'>
-      <p>
-        <strong>{auth.displayName}</strong>
-      </p>
-      <p>{auth.email}</p>
-      <Divider />
+      {windowHeight >= 576 && (
+        <Fragment>
+          <p>
+            <strong>{auth.displayName}</strong>
+          </p>
+          <p>{auth.email}</p>
+        </Fragment>
+      )}
       <Menu>
-        <Item key='profile' icon={<UserOutlined />}>
-          <Link to='/profile'>โปรไฟล์</Link>
-        </Item>
-        <Item key='setting' icon={<SettingOutlined />}>
-          <Link to='/setting'>ตั้งค่าแอปพลิเคชัน</Link>
-        </Item>
-      </Menu>
-      <Divider />
-      <Menu>
-        <Item key='logout' icon={<LogoutOutlined />}>
-          <Link to='/logout'>ออกจากระบบ</Link>
-        </Item>
+        <Menu.Item key='profile' icon={<UserOutlined />}>
+          <Link to='/profile'>{t('applayout_account_profile')}</Link>
+        </Menu.Item>
+        <Menu.Item key='setting' icon={<SettingOutlined />}>
+          <Link to='/setting'>{t('applayout_account_setting')}</Link>
+        </Menu.Item>
+        <Menu.Item key='logout' icon={<LogoutOutlined />}>
+          <Link to='/logout'>{t('applayout_account_logout')}</Link>
+        </Menu.Item>
       </Menu>
     </div>
   );
@@ -88,52 +94,72 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
       <Affix>
         <Header className='AppLayout__Header'>
           <Space size='small'>
-            <MenuOutlined className='AppLayout__Button' onClick={() => setDrawerShowed(true)} />
+            <MyHeaderIcon icon={<MenuOutlined />} onClick={() => setDrawerShowed(true)} />
             <Link to='/'>
-              <HomeFilled className='AppLayout__Button' />
+              <MyHeaderIcon icon={<HomeFilled />} />
             </Link>
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
           <div className='AppLayout__Fill'></div>
           <Space size='small'>
-            <Popover placement='bottomRight' title='ข้อมูลแอป' content={information} trigger='click'>
-              <div className='AppLayout__Popover'>
-                <InfoCircleOutlined className='AppLayout__Button' />
-              </div>{' '}
-            </Popover>
-            <Popover placement='bottomRight' title='แจ้งเตือน' content={notification} trigger='click'>
-              <div className='AppLayout__Popover'>
-                <BellFilled className='AppLayout__Button' />
-              </div>
-            </Popover>
-            <Popover content={avatarMenu} title='ข้อมูลผู้ใช้งาน' placement='bottomRight' trigger='click'>
-              <div className='AppLayout__Popover--avatar'>
-                <MyAvatar />
-              </div>
-            </Popover>
+            <MyHeaderIcon
+              key={1}
+              menu={1}
+              icon={<InfoCircleOutlined />}
+              title={t('applayout_info_title')}
+              activeMenu={activeMenu}
+              windowWidth={windowWidth}
+              onClick={() => setActiveMenu(1)}
+              onClose={() => setActiveMenu(0)}
+            >
+              {informationText || (
+                <Descriptions bordered size='small' column={1}>
+                  <Descriptions.Item label={t('applayout_appname')}>{packageJson.name}</Descriptions.Item>
+                  <Descriptions.Item label={t('applayout_appversion')}>{packageJson.version}</Descriptions.Item>
+                  <Descriptions.Item label={t('applayout_appdesc')}>{packageJson.description}</Descriptions.Item>
+                  <Descriptions.Item label={t('applayout_appuid')}>{auth.uid}</Descriptions.Item>
+                </Descriptions>
+              )}
+            </MyHeaderIcon>
+            <MyHeaderIcon
+              key={2}
+              menu={2}
+              icon={<BellFilled />}
+              title={t('applayout_noti_title')}
+              activeMenu={activeMenu}
+              windowWidth={windowWidth}
+              onClick={() => setActiveMenu(2)}
+              onClose={() => setActiveMenu(0)}
+            >
+              {noti}
+            </MyHeaderIcon>
+            <MyHeaderIcon
+              key={3}
+              menu={3}
+              icon={<MyAvatar />}
+              avatar
+              title={t('applayout_account_title')}
+              activeMenu={activeMenu}
+              windowWidth={windowWidth}
+              onClick={() => setActiveMenu(3)}
+              onClose={() => setActiveMenu(0)}
+            >
+              {account}
+            </MyHeaderIcon>
           </Space>
         </Header>
       </Affix>
       <Content className='AppLayout__Content'>
         <div className={className}>{children}</div>
       </Content>
-      <Footer>
-        <div className='AppLayout__Footer'>
-          <p>แอปพลิเคชันนี้สำหรับการใช้งานส่วนบุคคลเท่านั้น</p>
-          <Space direction='horizontal' size='middle'>
-            <a href='https://github.com/charoensakn/rulecture' target='_blank'>
-              <GithubOutlined />
-            </a>
-            <Popover content={<img src={lineqrcode} alt='LINE' />} trigger='click'>
-              <MessageOutlined />
-            </Popover>
-            <a href='mailto:6302014482@rumail.ru.ac.th'>
-              <MailOutlined />
-            </a>
-          </Space>
-        </div>
-      </Footer>
-      <Drawer title='เมนูลัด' placement='left' closable onClose={() => setDrawerShowed(false)} visible={drawerShowed}>
+      <MyFooter />
+      <Drawer
+        title={t('applayout_drawer_title')}
+        placement='left'
+        closable
+        onClose={() => setDrawerShowed(false)}
+        visible={drawerShowed}
+      >
         <p>Some contents...</p>
         <p>Some contents...</p>
         <p>Some contents...</p>

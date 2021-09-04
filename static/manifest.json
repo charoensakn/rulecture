@@ -1,7 +1,7 @@
 {
   "short_name": "RU Lecture",
   "name": "RU Lecture",
-  "description": "แอปพลิเคชันสำหรับเผยแพร่สื่อการเรียนต่างๆ ของนักศึกษารามคำแหง",
+  "description": "แอปพลิเคชันสำหรับเผยแพร่สื่อการเรียนต่างๆ สำหรับนักศึกษารามคำแหง",
   "icons": [
     {
       "src": "favicon.ico",
@@ -12,23 +12,23 @@
       "src": "icons-64.png",
       "sizes": "64x64",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#10239e",
-  "background_color": "#ffffff"
+  "theme_color": "#1890ff",
+  "background_color": "#1890ff"
 }

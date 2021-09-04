@@ -1,5 +1,6 @@
 import { Col, Row, Space } from 'antd';
 import { useCallback, useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../ctx';
 import { BoxLayout } from '../layouts/BoxLayout';
@@ -7,6 +8,7 @@ import { BoxLayout } from '../layouts/BoxLayout';
 export function LogoutPage() {
   const { logout } = useContext(AuthContext);
   const [loggedOut, setLoggedOut] = useState(false);
+  const { t } = useTranslation();
 
   const fn = useCallback(async () => {
     await logout();
@@ -21,12 +23,12 @@ export function LogoutPage() {
       <Space direction='vertical' size='large'>
         <Row>
           <Col span={24}>
-            <h3>{loggedOut ? 'ออกจากระบบเรียบร้อยแล้ว' : 'กำลังออกจากระบบ'}</h3>
+            <h3>{t(loggedOut ? 'logoutpage_loggedout' : 'logoutpage_loggingout')}</h3>
           </Col>
         </Row>
         <Row>
           <Col span={24}>
-            <Link to={'/login'}>กลับไปยังหน้าล็อกอิน</Link>
+            <Link to={'/login'}>{t('logoutpage_backtologin')}</Link>
           </Col>
         </Row>
       </Space>

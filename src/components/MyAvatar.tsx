@@ -2,7 +2,6 @@ import { UserOutlined } from '@ant-design/icons';
 import { Avatar, AvatarProps } from 'antd';
 import React, { PropsWithoutRef, useContext } from 'react';
 import { AuthContext } from '../ctx';
-import './MyAvatar.less';
 
 export function MyAvatar({ size = 'default', shape = 'circle' }: PropsWithoutRef<AvatarProps>) {
   const { auth } = useContext(AuthContext);

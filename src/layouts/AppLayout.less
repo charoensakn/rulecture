@@ -1,40 +1,13 @@
 .AppLayout {
+  position: relative;
   display: flex;
   min-height: 100vh;
 
   .AppLayout__Header {
-    background-color: #10239e;
     color: white;
     padding: 0 17px;
     display: flex;
     height: 45px;
-
-    a {
-      color: white;
-    }
-
-    .AppLayout__Button {
-      font-size: 1.3rem;
-      cursor: pointer;
-      background-color: #1d39c4;
-      border-radius: 3px;
-      padding: 6px;
-      margin-top: 20px;
-
-      &:hover {
-        background-color: #2f54eb;
-      }
-    }
-
-    .AppLayout__Popover {
-      display: inline-block;
-      height: 50px;
-    }
-
-    .AppLayout__Popover--avatar {
-      display: inline-block;
-      height: 46px;
-    }
 
     .ant-breadcrumb {
       margin-top: 2px;
@@ -67,31 +40,19 @@
     flex: 1;
   }
 
-  .AppLayout__Footer {
-    text-align: center;
-    color: rgba(0, 0, 0, 0.25);
-    padding: 25px 0;
+  .AppLayout__PopoverMenu {
+    .ant-menu {
+      border: none;
 
-    a {
-      color: inherit;
+      .ant-menu-item {
+        padding: 0;
+
+        &:hover,
+        &:focus,
+        &:active {
+          background: none;
+        }
+      }
     }
-
-    .anticon {
-      font-size: 1.2rem;
-    }
-  }
-}
-
-.AppLayout__PopoverMenu {
-  .ant-menu {
-    border: 0;
-
-    .ant-menu-item {
-      padding: 0;
-    }
-  }
-
-  .ant-divider {
-    margin: 0;
   }
 }

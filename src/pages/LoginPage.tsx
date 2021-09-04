@@ -2,6 +2,7 @@ import { Space, Typography } from 'antd';
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Redirect } from 'react-router-dom';
 import { MyLoginButton } from '../components/MyLoginButton';
 import { AuthContext } from '../ctx';
@@ -16,6 +17,7 @@ export function LoginPage() {
 
   const { auth, login } = useContext(AuthContext);
   const q = useQuery();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetch('https://connectivitycheck.gstatic.com/generate_204', { mode: 'no-cors' }).catch(() => setOffline(true));
@@ -32,13 +34,13 @@ export function LoginPage() {
       <Space direction='vertical' size='large'>
         <img className='LoginPage__Logo' src='/icons-192.png' alt='Logo' />
         <h2>RU Lecture</h2>
-        <h3>แอปพลิเคชันสำหรับเผยแพร่สื่อการเรียนต่างๆ สำหรับนักศึกษามหาวิทยาลัยรามคำแหง</h3>
+        <h3>{t('loginpage_appdesc')}</h3>
         {auth.uid ? (
           <Redirect to={{ pathname: '/signed-in', search: `redirect=${q.get('redirect')}` }} />
         ) : (
           <div>
             <div style={{ display: offline ? 'inherit' : 'none' }}>
-              <Text type='danger'>ไม่สามารถเชื่อมต่อระบบล็อกอินได้ในขณะนี้</Text>
+              <Text type='danger'>{t('loginpage_noconnection')}</Text>
             </div>
             <div style={{ display: offline ? 'none' : 'inherit' }}>
               <MyLoginButton />

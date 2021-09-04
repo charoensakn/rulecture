@@ -1,0 +1,53 @@
+.MyHeaderIcon {
+  position: relative;
+  display: block;
+  width: 33px;
+  height: 32px;
+  line-height: 21px;
+
+  .MyHeaderIcon__Button,
+  .MyHeaderIcon__Avatar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline;
+    font-size: 1.3rem;
+    cursor: pointer;
+  }
+
+  .MyHeaderIcon__Button {
+    width: 33px;
+    height: 32px;
+    background-color: #40a9ff;
+    border-radius: 3px;
+    padding: 6px;
+    color: white;
+
+    &:hover {
+      background-color: #096dd9;
+    }
+  }
+}
+
+.MyHeaderIcon__Content {
+  position: absolute !important;
+  right: 0;
+  z-index: 1;
+  @media screen and (min-width: 576px) {
+    min-width: 350px;
+    top: 38px;
+  }
+  @media screen and (max-width: 575px) {
+    width: 100vw;
+    top: 45px;
+  }
+
+  .ant-card-head-wrapper .ant-card-extra .ant-btn-text {
+    padding: 0;
+
+    &:hover,
+    &:focus {
+      background: none;
+    }
+  }
+}

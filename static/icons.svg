@@ -15,7 +15,10 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="icons.svg">
+   sodipodi:docname="icons.svg"
+   inkscape:export-filename="/home/charoensak/code-workspace/rulecture/static/icons-64.png"
+   inkscape:export-xdpi="12.000001"
+   inkscape:export-ydpi="12.000001">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -26,8 +29,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="415.9205"
-     inkscape:cy="260.73093"
+     inkscape:cx="285.9205"
+     inkscape:cy="255.01664"
      inkscape:document-units="px"
      inkscape:current-layer="layer4"
      showgrid="false"
@@ -67,7 +70,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -76,14 +79,16 @@
      id="layer4"
      inkscape:label="Layer 3">
     <rect
-       style="fill:#10239e;fill-opacity:1;stroke:none;stroke-width:1.32291663;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#1890ff;fill-opacity:1;stroke:none;stroke-width:1.32291663;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect896"
        width="135.46666"
        height="135.46666"
        x="0"
        y="5.4541015e-06"
        rx="21.166666"
-       ry="21.166666" />
+       ry="21.166666"
+       inkscape:export-xdpi="96.000008"
+       inkscape:export-ydpi="96.000008" />
   </g>
   <g
      inkscape:groupmode="layer"

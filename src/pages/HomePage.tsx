@@ -5,7 +5,7 @@ import './HomePage.less';
 
 export function HomePage() {
   const children = [];
-  for (let i = 0; i < 20; i++)
+  for (let i = 0; i < 10; i++)
     children.push(
       <Col key={i} xs={24} sm={12} md={8} lg={6} xxl={4}>
         <div className='HomePage__Container'>
