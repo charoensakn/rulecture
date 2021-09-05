@@ -1,12 +1,13 @@
 import { Col, Row, Space } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BoxLayout } from '../layouts/BoxLayout';
+import { AppBoxLayout } from '../layouts/AppBoxLayout';
 
 export function NotFoundPage() {
   const { t } = useTranslation();
+
   return (
-    <BoxLayout>
+    <AppBoxLayout>
       <Space direction='vertical' size='large'>
         <Row>
           <Col span={24}>
@@ -19,6 +20,6 @@ export function NotFoundPage() {
           </Col>
         </Row>
       </Space>
-    </BoxLayout>
+    </AppBoxLayout>
   );
 }

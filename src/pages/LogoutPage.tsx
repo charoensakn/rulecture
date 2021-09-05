@@ -28,7 +28,7 @@ export function LogoutPage() {
         </Row>
         <Row>
           <Col span={24}>
-            <Link to={'/login'}>{t('logoutpage_backtologin')}</Link>
+            <Link to={'/login'}>{t('backtologin')}</Link>
           </Col>
         </Row>
       </Space>

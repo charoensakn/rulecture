@@ -1,5 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
 const path = require('path');
@@ -12,9 +12,7 @@ const plugins = [
   new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }), //
   new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/index.html'), inject: 'body' }),
   new CopyWebpackPlugin({
-    patterns: [
-      { from: 'static', to: '.' }
-    ],
+    patterns: [{ from: 'static', to: '.' }],
   }),
   new IgnorePlugin(/^\.\/app-check$/, /firebase$/),
   new IgnorePlugin(/^\.\/analytics$/, /firebase$/),
@@ -24,11 +22,13 @@ const plugins = [
 ];
 
 if (mode !== 'development') {
-  plugins.push(new WorkboxPlugin.GenerateSW({
-    clientsClaim: true,
-    skipWaiting: true,
-    maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
-  }));
+  plugins.push(
+    new WorkboxPlugin.GenerateSW({
+      clientsClaim: true,
+      skipWaiting: true,
+      maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
+    })
+  );
 }
 
 module.exports = {
@@ -44,29 +44,29 @@ module.exports = {
       },
       {
         test: /\.(png|svg)$/,
-        use: 'file-loader'
+        use: 'file-loader',
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader']
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.less$/,
         use: [
           {
-            loader: MiniCssExtractPlugin.loader
+            loader: MiniCssExtractPlugin.loader,
           },
           {
-            loader: 'css-loader'
+            loader: 'css-loader',
           },
           {
             loader: 'less-loader',
             options: {
               lessOptions: {
-                javascriptEnabled: true
-              }
-            }
-          }
+                javascriptEnabled: true,
+              },
+            },
+          },
         ],
       },
     ],
@@ -79,6 +79,7 @@ module.exports = {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'public'),
     clean: true,
+    publicPath: '/',
   },
   optimization: {
     runtimeChunk: 'single',
@@ -95,6 +96,6 @@ module.exports = {
   performance: {
     hints: false,
     maxEntrypointSize: 512000,
-    maxAssetSize: 512000
-  }
+    maxAssetSize: 512000,
+  },
 };

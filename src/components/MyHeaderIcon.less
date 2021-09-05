@@ -18,17 +18,17 @@
   .MyHeaderIcon__Button {
     width: 33px;
     height: 32px;
-    background-color: #40a9ff;
+    background-color: rgba(255, 255, 255, 0.15);
     border-radius: 3px;
     padding: 6px;
     color: white;
 
     &:hover,
     &:active {
-      background-color: #096dd9;
+      background-color: rgba(255, 255, 255, 0.35);
     }
     &:focus {
-      background-color: #40a9ff;
+      background-color: rgba(255, 255, 255, 0.15);
     }
   }
 }
@@ -36,7 +36,7 @@
 .MyHeaderIcon__Content {
   position: absolute !important;
   right: 0;
-  z-index: 1;
+  z-index: 2000;
   @media screen and (min-width: 576px) {
     min-width: 350px;
     top: 38px;
@@ -46,7 +46,8 @@
     top: 45px;
   }
 
-  .ant-card-head-wrapper .ant-card-extra .ant-btn-text {
+  .ant-card-head-wrapper .ant-card-extra .ant-btn-text,
+  .antdark-card-head-wrapper .antdark-card-extra .antdark-btn-text {
     padding: 0;
 
     &:hover,

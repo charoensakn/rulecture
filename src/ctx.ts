@@ -19,3 +19,32 @@ export const AuthContext = createContext<{ auth: Auth; login: LoginFn; logout: L
   login: () => {},
   logout: () => Promise.resolve(),
 });
+
+export type Setting = {
+  language?: string;
+  rounding?: number;
+  darkMode?: boolean;
+  autoHide?: boolean;
+  autoHideSensitivity?: number;
+};
+export type ChangeLanguageFn = (value: string) => void;
+export type ChangeRoundingFn = (value: number) => void;
+export type ChangeDarkModeFn = (value: boolean) => void;
+export type ChangeAutoHideFn = (value: boolean) => void;
+export type ChangeAutoHideSensitivityFn = (value: number) => void;
+
+export const SettingContext = createContext<{
+  setting: Setting;
+  changeLanguage: ChangeLanguageFn;
+  changeRounding: ChangeRoundingFn;
+  changeDarkMode: ChangeDarkModeFn;
+  changeAutoHide: ChangeAutoHideFn;
+  changeAutoHideSensitivity: ChangeAutoHideSensitivityFn;
+}>({
+  setting: {},
+  changeLanguage: () => {},
+  changeRounding: () => {},
+  changeDarkMode: () => {},
+  changeAutoHide: () => {},
+  changeAutoHideSensitivity: () => {},
+});

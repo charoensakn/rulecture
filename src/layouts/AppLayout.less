@@ -2,12 +2,14 @@
   position: relative;
   min-height: 100vh !important;
 
-  .ant-affix {
+  .ant-affix,
+  .antdark-affix {
     transition: all 0.35s ease-in-out;
   }
 
   .AppLayout__Header--hide {
-    .ant-affix {
+    .ant-affix,
+    .antdark-affix {
       top: -45px !important;
     }
   }
@@ -18,12 +20,14 @@
     display: flex;
     height: 45px;
 
-    .ant-breadcrumb {
+    .ant-breadcrumb,
+    .antdark-breadcrumb {
       margin-top: 2px;
     }
 
     .AppLayout__Link a,
-    .ant-breadcrumb-separator {
+    .ant-breadcrumb-separator,
+    .antdark-breadcrumb-separator {
       color: rgba(255, 255, 255, 0.8) !important;
       font-size: 1.1rem;
       font-weight: bold;
@@ -47,13 +51,22 @@
 
   .AppLayout__Content {
     flex: 1;
+    width: 100%;
+    max-width: 1199px;
+    margin: 0 auto;
+  }
+
+  .AppLayout__Content--full {
+    flex: 1;
   }
 
   .AppLayout__PopoverMenu {
-    .ant-menu {
+    .ant-menu,
+    .antdark-menu {
       border: none;
 
-      .ant-menu-item {
+      .ant-menu-item,
+      .antdark-menu-item {
         padding: 0;
 
         &:hover,

@@ -8,19 +8,23 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Affix, Breadcrumb, Descriptions, Drawer, Empty, Layout, Menu, Space } from 'antd';
-import React, { Fragment, PropsWithChildren, useCallback, useContext, useEffect, useState } from 'react';
+import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import packageJson from '../../package.json';
 import { MyAvatar } from '../components/MyAvatar';
 import { MyFooter } from '../components/MyFooter';
 import { MyHeaderIcon } from '../components/MyHeaderIcon';
-import { AuthContext } from '../ctx';
+import { AuthContext, SettingContext } from '../ctx';
 import './AppLayout.less';
-import packageJson from '../../package.json';
 
 const { Header, Content } = Layout;
 
-export function AppLayout({ className, children }: PropsWithChildren<{ className?: string }>) {
+export function AppLayout({
+  className,
+  fullWidth,
+  children,
+}: PropsWithChildren<{ className?: string; fullWidth?: boolean }>) {
   const [drawerShowed, setDrawerShowed] = useState(false);
   const [headerShowed, setHeaderShowed] = useState(true);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -29,7 +33,9 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
   const [activeMenu, setActiveMenu] = useState(0);
 
   const { auth } = useContext(AuthContext);
+  const { setting } = useContext(SettingContext);
   const { t } = useTranslation();
+  const location = useLocation();
 
   let lastScrollY = 0;
   let lastScrollTime = 0;
@@ -44,13 +50,20 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
       setInformationText(t('applayout_info_installing_pwa'));
     }
     const handleScroll = () => {
+      if (!setting.autoHide) {
+        if (!headerShowed) {
+          setHeaderShowed(true);
+        }
+        return;
+      }
       const scrollY = window.scrollY;
       const scrollTime = Date.now();
       if (scrollY > 250) {
+        const s = 10.1 - (setting.autoHideSensitivity || 10);
         const v = (scrollY - lastScrollY) / (scrollTime - lastScrollTime);
-        if (v < -0.2 && !headerShowed) {
+        if (v < -1 * s && !headerShowed) {
           setHeaderShowed(true);
-        } else if (v > 0.2 && headerShowed) {
+        } else if (v > s && headerShowed) {
           setActiveMenu(0);
           setHeaderShowed(false);
         }
@@ -67,28 +80,46 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
     };
   }, [headerShowed]);
 
-  const links = [];
-  if (windowWidth >= 768) {
+  const pathnames = location.pathname.split(/\/+/);
+  let parentLink = '';
+  let parent;
+  if (pathnames.length > 2) {
+    for (let i = 1; i < pathnames.length - 1; i++) {
+      parentLink += `/${pathnames[i]}`;
+    }
+    parent = t(`/${pathnames[pathnames.length - 2]}`);
+    if (parent && parent.startsWith('/')) {
+      parent = parent.substr(1);
+    }
+  }
+  let current = t(`/${pathnames[pathnames.length - 1]}`);
+  if (current && current.startsWith('/')) {
+    current = current.substr(1);
+  }
+  const links: JSX.Element[] = [];
+  if (windowWidth >= 768 && pathnames.length > 1 && pathnames[pathnames.length - 1]) {
     links.push(
       <Breadcrumb.Item key={'home'} className='AppLayout__Link'>
         <Link to='/'>{t('/')}</Link>
       </Breadcrumb.Item>
     );
   }
-  if (windowWidth >= 576) {
+  if (windowWidth >= 576 && parentLink && parent) {
     links.push(
       <Breadcrumb.Item key={'submenu'} className='AppLayout__Link'>
-        <Link to='/lectures'>{t('/lectures')}</Link>
+        <Link to={parentLink}>{parent}</Link>
       </Breadcrumb.Item>
     );
   }
-  links.push(
-    <Breadcrumb.Item key={'current'} className='AppLayout__Link--current'>
-      {'FIN2101'}
-    </Breadcrumb.Item>
-  );
+  if (current) {
+    links.push(
+      <Breadcrumb.Item key={'current'} className='AppLayout__Link--current'>
+        {current}
+      </Breadcrumb.Item>
+    );
+  }
 
-  const noti = <Empty description={t('applayout_noti_nodata')} />;
+  const noti = <Empty description={t('noti_nodata')} />;
 
   const account = (
     <div className='AppLayout__PopoverMenu'>
@@ -102,13 +133,13 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
       )}
       <Menu>
         <Menu.Item key='profile' icon={<UserOutlined />}>
-          <Link to='/profile'>{t('applayout_account_profile')}</Link>
+          <Link to='/profile'>{t('profile')}</Link>
         </Menu.Item>
         <Menu.Item key='setting' icon={<SettingOutlined />}>
-          <Link to='/setting'>{t('applayout_account_setting')}</Link>
+          <Link to='/setting'>{t('setting')}</Link>
         </Menu.Item>
         <Menu.Item key='logout' icon={<LogoutOutlined />}>
-          <Link to='/logout'>{t('applayout_account_logout')}</Link>
+          <Link to='/logout'>{t('logout')}</Link>
         </Menu.Item>
       </Menu>
     </div>
@@ -145,10 +176,10 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
             >
               {informationText || (
                 <Descriptions bordered size='small' column={1}>
-                  <Descriptions.Item label={t('applayout_appname')}>{packageJson.name}</Descriptions.Item>
-                  <Descriptions.Item label={t('applayout_appversion')}>{packageJson.version}</Descriptions.Item>
-                  <Descriptions.Item label={t('applayout_appdesc')}>{packageJson.description}</Descriptions.Item>
-                  <Descriptions.Item label={t('applayout_appuid')}>{auth.uid}</Descriptions.Item>
+                  <Descriptions.Item label={t('name')}>{packageJson.name}</Descriptions.Item>
+                  <Descriptions.Item label={t('version')}>{packageJson.version}</Descriptions.Item>
+                  <Descriptions.Item label={t('desc')}>{packageJson.description}</Descriptions.Item>
+                  <Descriptions.Item label={t('uid')}>{auth.uid}</Descriptions.Item>
                 </Descriptions>
               )}
             </MyHeaderIcon>
@@ -156,7 +187,7 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
               key={2}
               menu={2}
               icon={<BellFilled />}
-              title={t('applayout_noti_title')}
+              title={t('noti')}
               activeMenu={activeMenu}
               windowWidth={windowWidth}
               onClick={() => setActiveMenu(2)}
@@ -169,7 +200,7 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
               menu={3}
               icon={<MyAvatar />}
               avatar
-              title={t('applayout_account_title')}
+              title={t('account')}
               activeMenu={activeMenu}
               windowWidth={windowWidth}
               onClick={() => setActiveMenu(3)}
@@ -180,7 +211,7 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
           </Space>
         </Header>
       </Affix>
-      <Content className='AppLayout__Content'>
+      <Content className={fullWidth ? 'AppLayout__Content--full' : 'AppLayout__Content'}>
         <div className={className}>{children}</div>
       </Content>
       <MyFooter />

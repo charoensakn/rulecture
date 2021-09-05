@@ -22,9 +22,9 @@ export function SignedInPage() {
     to = redirectUrl || '/';
   }
   const vals: any = {};
-  vals[t('signedinpage_studentid')] = auth.studentId;
-  vals[t('signedinpage_email')] = auth.email;
-  vals[t('signedinpage_phone')] = auth.phoneNumber;
+  vals[t('studentid')] = auth.studentId;
+  vals[t('email')] = auth.email;
+  vals[t('phone')] = auth.phoneNumber;
 
   return (
     <BoxLayout className='SignedInPage'>

@@ -4,6 +4,8 @@ import i18n from 'i18next';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { initReactI18next } from 'react-i18next';
+import './ant.less';
+import './antdark.less';
 import App from './App';
 import { resources } from './i18n';
 import './index.less';

@@ -1,5 +1,5 @@
 import { Card, Layout } from 'antd';
-import { PropsWithChildren } from 'react';
+import React, { PropsWithChildren } from 'react';
 import { MyFooter } from '../components/MyFooter';
 import './BoxLayout.less';
 
