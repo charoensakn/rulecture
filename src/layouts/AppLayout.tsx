@@ -46,11 +46,12 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const scrollTime = Date.now();
-      if (scrollY > 100) {
+      if (scrollY > 250) {
         const v = (scrollY - lastScrollY) / (scrollTime - lastScrollTime);
         if (v < -0.2 && !headerShowed) {
           setHeaderShowed(true);
         } else if (v > 0.2 && headerShowed) {
+          setActiveMenu(0);
           setHeaderShowed(false);
         }
         lastScrollY = scrollY;
@@ -118,9 +119,15 @@ export function AppLayout({ className, children }: PropsWithChildren<{ className
       <Affix className={headerShowed ? '' : 'AppLayout__Header--hide'}>
         <Header className='AppLayout__Header'>
           <Space size='small'>
-            <MyHeaderIcon icon={<MenuOutlined />} onClick={() => setDrawerShowed(true)} />
+            <MyHeaderIcon
+              icon={<MenuOutlined />}
+              onClick={() => {
+                setActiveMenu(0);
+                setDrawerShowed(true);
+              }}
+            />
             <Link to='/'>
-              <MyHeaderIcon icon={<HomeFilled />} />
+              <MyHeaderIcon icon={<HomeFilled />} onClick={() => setActiveMenu(0)} />
             </Link>
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
