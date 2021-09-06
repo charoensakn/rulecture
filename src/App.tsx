@@ -32,6 +32,7 @@ import i18n from 'i18next';
 import { LineReportPage } from './pages/LineReportPage';
 
 const LASTLOGIN_KEY = 'lastlogin';
+const BODY = document.getElementsByTagName('body')[0];
 
 function PrivateRoute({ exact, path, children }: React.PropsWithChildren<{ exact?: boolean; path: string }>) {
   const { auth } = useContext(AuthContext);
@@ -106,6 +107,10 @@ function App() {
     localStorage.set('autohide', autoHide);
     localStorage.set('autohidesense', autoHideSensitivity);
 
+    if (BODY) {
+      BODY.style.backgroundColor = darkMode ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
+    }
+
     i18n.changeLanguage(language);
   });
 
@@ -129,6 +134,9 @@ function App() {
   const changeDarkMode: ChangeDarkModeFn = (value) => {
     setDarkMode(value);
     localStorage.set('darkmode', value);
+    if (BODY) {
+      BODY.style.backgroundColor = value ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
+    }
   };
   const changeAutoHide: ChangeAutoHideFn = (value) => {
     setAutoHide(value);
