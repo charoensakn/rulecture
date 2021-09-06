@@ -20,7 +20,9 @@
     .antdark-col:last-child {
       flex: 1;
       text-align: right;
-      margin-right: 50px;
+      @media screen and (min-width: 576px) {
+        margin-right: 50px;
+      }
 
       .ant-radio-group-outline,
       .antdark-radio-group-outline {

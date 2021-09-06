@@ -44,6 +44,7 @@ export function ProfilePage() {
               title={() => <h2>{t('profile_access')}</h2>}
               dataSource={devDatasource}
               bordered
+              tableLayout='fixed'
               rowSelection={{ type: 'checkbox', getCheckboxProps: (record) => ({ id: record.id }) }}
             >
               <Column title={t('location')} dataIndex='path' key='path' />
@@ -58,6 +59,7 @@ export function ProfilePage() {
               title={() => <h2>{t('profile_device')}</h2>}
               dataSource={devDatasource}
               bordered
+              tableLayout='fixed'
               rowSelection={{ type: 'checkbox', getCheckboxProps: (record) => ({ id: record.id }) }}
             >
               <Column title={t('device')} dataIndex='name' key='name' ellipsis={!screens.sm ? true : undefined} />
