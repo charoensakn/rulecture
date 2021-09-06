@@ -1,4 +1,4 @@
-import { Card, Col, Descriptions, Divider, Row, Space, Table } from 'antd';
+import { Card, Col, Descriptions, Divider, Row, Space, Table, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { AppLayout } from '../layouts/AppLayout';
 import './ProfilePage.less';
 
 const { Column } = Table;
+const { Title } = Typography;
 
 export function ProfilePage() {
   const { auth } = useContext(AuthContext);
@@ -22,7 +23,7 @@ export function ProfilePage() {
       <Center>
         <Space className='ProfilePage__Avatar' direction='horizontal' size='large'>
           <MyAvatar size={144} shape='square' />
-          {screens.sm && <h2>{auth.displayName}</h2>}
+          {screens.sm && <Title level={3}>{auth.displayName}</Title>}
         </Space>
       </Center>
       <Card>

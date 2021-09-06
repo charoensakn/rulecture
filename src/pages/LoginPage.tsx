@@ -10,7 +10,7 @@ import { BoxLayout } from '../layouts/BoxLayout';
 import { useQuery } from '../util';
 import './LoginPage.less';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 export function LoginPage() {
   const [offline, setOffline] = useState(false);
@@ -33,8 +33,8 @@ export function LoginPage() {
     <BoxLayout className='LoginPage'>
       <Space direction='vertical' size='large'>
         <img className='LoginPage__Logo' src='/icons-192.png' alt='Logo' />
-        <h2>RU Lecture</h2>
-        <h3>{t('loginpage_appdesc')}</h3>
+        <Title level={3}>RU Lecture</Title>
+        <Title level={5}>{t('loginpage_appdesc')}</Title>
         {auth.uid ? (
           <Redirect to={{ pathname: '/signed-in', search: `redirect=${q.get('redirect')}` }} />
         ) : (

@@ -1,0 +1,253 @@
+import { ExportOutlined, ImportOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Input, Modal, Row, Space, Statistic, Table, Typography } from 'antd';
+import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import firebase from 'firebase';
+import 'firebase/firestore';
+import moment from 'moment';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router';
+import { AppLayout } from '../layouts/AppLayout';
+import { LineReportService, Result, Student } from '../services/linereport';
+import './LineReportPage.less';
+
+const { Column } = Table;
+const { Title, Paragraph } = Typography;
+const { TextArea } = Input;
+
+export function LineReportPage() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [rawData, setRawData] = useState('');
+  const [data, setData] = useState({} as Result);
+  const [stat, setStat] = useState([] as { title: string; value: number }[]);
+  const [filter, setFilter] = useState('');
+
+  const { subject } = useParams<{ subject: string }>();
+  const { t } = useTranslation();
+  const screens = useBreakpoint();
+
+  const fetchData = useCallback(async () => {
+    try {
+      const docRef = firebase.firestore().collection(`linereport`).doc(subject);
+      const doc = await docRef.get();
+      if (doc.exists) {
+        const d = doc.data();
+        if (d) {
+          setData(d as Result);
+          console.log(`[linereport] get ${subject} from firestore`);
+          return;
+        }
+      }
+      console.log('[linereport] no saved data');
+    } catch (error) {
+      console.error(`[linereport] cannot get ${subject} from firestore`, error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleCancel = () => {
+    setModalVisible(false);
+    setRawData('');
+  };
+
+  const handleImport = () => {
+    setModalVisible(false);
+    setRawData('');
+    const service = new LineReportService(rawData);
+    service.process().then((data) => {
+      setData(data);
+      const map = new Map<string, number>();
+      data.students.forEach((s) => {
+        const code = s.studentId.substr(0, 2);
+        const count = map.get(code);
+        if (!count) {
+          map.set(code, 1);
+        } else {
+          map.set(code, count + 1);
+        }
+      });
+      const newstat = [];
+      newstat.push({ title: t('total'), value: data.students.length });
+      const codes = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
+      for (let code of codes) {
+        newstat.push({ title: t('linereport_code', { code }), value: map.get(code) || 0 });
+      }
+      return firebase
+        .firestore()
+        .collection(`linereport`)
+        .doc(subject)
+        .set(data)
+        .then(() => console.log(`[linereport] set ${subject} to firestore`))
+        .catch((error) => console.error(`[linereport] cannot set ${subject} to firestore`, error));
+    });
+  };
+
+  const handleExport = () => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet(subject);
+    sheet.columns = [
+      { key: 'line', header: t('line'), width: 30, alignment: { vertical: 'middle', horizontal: 'left' } },
+      { key: 'studentid', header: t('studentid'), width: 20, alignment: { vertical: 'middle', horizontal: 'center' } },
+      { key: 'name', header: t('name'), width: 40, alignment: { vertical: 'middle', horizontal: 'left' } },
+      {
+        key: 'reportdate',
+        header: t('reportdate'),
+        width: 40,
+        alignment: { vertical: 'middle', horizontal: 'center' },
+      },
+    ];
+    sheet.getRow(1).height = 20;
+    for (let i = 0; i < data.students.length; i++) {
+      const d = data.students[i];
+      if (d) {
+        const row = sheet.getRow(i + 2);
+        row.height = 20;
+        row.values = {
+          line: d.lineId,
+          studentid: d.studentId,
+          name: d.name,
+          reportdate: d.datetime,
+        };
+      }
+    }
+    for (let i of ['A', 'B', 'C', 'D']) {
+      const cell = sheet.getCell(`${i}1`);
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+    }
+    for (let j = 0; j < data.students.length; j++) {
+      for (let i of ['A', 'B', 'C', 'D']) {
+        const cell = sheet.getCell(`${i}${j + 2}`);
+        if (j === data.students.length - 1) {
+          cell.border = {
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        } else {
+          cell.border = {
+            left: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      }
+    }
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      saveAs(
+        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        `linereport-${subject}_${moment().format('YYYYMMDDHHmm')}.xlsx`
+      );
+    });
+  };
+
+  const title = (
+    <Row>
+      <Col xs={12} sm={16}>
+        <Space>
+          <Button onClick={() => setModalVisible(true)} icon={<ImportOutlined />}>
+            {screens.sm && t('importdata')}
+          </Button>
+          <Button onClick={handleExport} icon={<ExportOutlined />}>
+            {screens.sm && t('exporttoexcel')}
+          </Button>
+        </Space>
+      </Col>
+      <Col xs={12} sm={8}>
+        <Input.Search allowClear onChange={(e) => setFilter(e.target.value.trim())} />
+      </Col>
+    </Row>
+  );
+
+  return (
+    <AppLayout className='LineReportPage'>
+      <Space direction='vertical' size='large'>
+        <Title level={4}>{t('linereport_title', { subject: t(`/${subject}`) })}</Title>
+        <Paragraph strong>{t('linereport_desc', { subject: t(`/${subject}`) })}</Paragraph>
+        {data.start && data.end && (
+          <Paragraph strong>
+            {t('linereport_range', {
+              start: moment(data.start).format('YYYY-MM-DD HH:mm'),
+              end: moment(data.end).format('YYYY-MM-DD HH:mm'),
+            })}
+          </Paragraph>
+        )}
+        <Row gutter={[16, 16]}>
+          {stat.map((s) => (
+            <Col key={s.title} xs={8} md={6} lg={4}>
+              <Card>
+                <Statistic title={s.title} value={s.value} />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+        <Table
+          dataSource={(data.students || []).filter(({ lineId, studentId, name }) =>
+            filter ? lineId.indexOf(filter) >= 0 || name.indexOf(filter) >= 0 || studentId.indexOf(filter) >= 0 : true
+          )}
+          title={() => title}
+          bordered
+          rowKey='lineId'
+          rowSelection={{ type: 'checkbox' }}
+          pagination={{ defaultPageSize: 50 }}
+        >
+          <Column
+            title={t('line')}
+            dataIndex='lineId'
+            key='lineId'
+            sorter={(a: Student, b: Student) => a.lineId.localeCompare(b.lineId)}
+          />
+          <Column
+            title={t('studentid')}
+            dataIndex='studentId'
+            key='studentId'
+            sorter={(a: Student, b: Student) => a.studentId.localeCompare(b.studentId)}
+            align='center'
+          />
+          <Column
+            title={t('name')}
+            dataIndex='name'
+            key='name'
+            sorter={(a: Student, b: Student) => a.name.localeCompare(b.name)}
+          />
+          {screens.lg && (
+            <Column
+              title={t('reportdate')}
+              dataIndex='datetime'
+              key='datetime'
+              align='center'
+              sorter={(a: Student, b: Student) => a.datetime.localeCompare(b.datetime)}
+              render={(text) => moment(text).format('YYYY-MM-DD HH:mm')}
+            />
+          )}
+        </Table>
+      </Space>
+      <Modal
+        title={t('linereport_paste')}
+        visible={modalVisible}
+        style={{ top: 20 }}
+        onOk={handleImport}
+        onCancel={handleCancel}
+        width={screens.md ? 1000 : 520}
+      >
+        <TextArea
+          rows={10}
+          spellCheck='false'
+          autoCapitalize='false'
+          autoComplete='false'
+          autoCorrect='false'
+          autoSave='false'
+          onChange={(e) => setRawData(e.target.value)}
+        />
+      </Modal>
+    </AppLayout>
+  );
+}

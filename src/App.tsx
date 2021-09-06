@@ -29,6 +29,7 @@ import { encodeLocation, localStorage } from './util';
 import enUS from 'antd/lib/locale/en_US';
 import thTH from 'antd/lib/locale/th_TH';
 import i18n from 'i18next';
+import { LineReportPage } from './pages/LineReportPage';
 
 const LASTLOGIN_KEY = 'lastlogin';
 
@@ -158,6 +159,9 @@ function App() {
                     </Route>
                     <Route path='/logout'>
                       <LogoutPage />
+                    </Route>
+                    <Route path='/apps/linereport/:subject'>
+                      <LineReportPage />
                     </Route>
                     <PrivateRoute path='/signed-in'>
                       <SignedInPage />

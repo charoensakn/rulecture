@@ -1,4 +1,4 @@
-import { Col, Row, Space } from 'antd';
+import { Col, Row, Space, Typography } from 'antd';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -23,7 +23,9 @@ export function LogoutPage() {
       <Space direction='vertical' size='large'>
         <Row>
           <Col span={24}>
-            <h3>{t(loggedOut ? 'logoutpage_loggedout' : 'logoutpage_loggingout')}</h3>
+            <Typography.Title level={5}>
+              {t(loggedOut ? 'logoutpage_loggedout' : 'logoutpage_loggingout')}
+            </Typography.Title>
           </Col>
         </Row>
         <Row>

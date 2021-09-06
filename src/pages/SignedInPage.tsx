@@ -1,4 +1,4 @@
-import { Col, Divider, Row, Space } from 'antd';
+import { Col, Divider, Row, Space, Typography } from 'antd';
 import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -30,7 +30,7 @@ export function SignedInPage() {
     <BoxLayout className='SignedInPage'>
       <Space className='SignedInPage__Space' direction='vertical' size='large'>
         <MyAvatar size={72} />
-        <h3>{auth.displayName}</h3>
+        <Typography.Title level={5}>{auth.displayName}</Typography.Title>
         <Divider />
         {Object.keys(vals).map((key) => (
           <Row key={key}>
