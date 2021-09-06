@@ -13,8 +13,39 @@
     margin: 0 16px;
   }
 
-  .ant-statistic-content,
-  .antdark-statistic-content {
-    text-align: right;
+  .LineReportPage__Stat {
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+
+    .LineReportPage__Stat--selected {
+      .ant-card {
+        background-color: #e6f7ff;
+      }
+      .antdark-card {
+        background-color: #002766;
+      }
+    }
+  }
+}
+
+.LineReportPage__List {
+  .ant-list-items,
+  .antdark-list-items {
+    height: 50vh;
+    overflow-y: auto;
+
+    .ant-list-item,
+    .antdark-list-item {
+      padding: 0 !important;
+
+      .ant-list-item-meta-title,
+      .antdark-list-item-meta-title {
+        font-size: 14px;
+      }
+      .ant-list-item-meta-description,
+      .antdark-list-item-meta-description {
+        font-size: 10px;
+      }
+    }
   }
 }

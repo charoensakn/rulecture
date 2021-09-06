@@ -1,5 +1,20 @@
 import { ExportOutlined, ImportOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Input, Modal, Row, Space, Statistic, Table, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Input,
+  List,
+  message,
+  Modal,
+  Progress,
+  Row,
+  Space,
+  Statistic,
+  Table,
+  Typography,
+} from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -21,8 +36,11 @@ export function LineReportPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [rawData, setRawData] = useState('');
   const [data, setData] = useState({} as Result);
-  const [stat, setStat] = useState([] as { title: string; value: number }[]);
+  const [stat, setStat] = useState([] as { group: string; title: string; value: number }[]);
   const [filter, setFilter] = useState('');
+  const [groupFilter, setGroupFilter] = useState('total');
+  const [appended, setAppended] = useState(true);
+  const [errorVisible, setErrorVisible] = useState(false);
 
   const { subject } = useParams<{ subject: string }>();
   const { t } = useTranslation();
@@ -44,10 +62,10 @@ export function LineReportPage() {
     });
     if (map.size > 0) {
       const newstat = [];
-      newstat.push({ title: t('total'), value: students.length });
+      newstat.push({ group: 'total', title: t('total'), value: students.length });
       const codes = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
       for (let code of codes) {
-        newstat.push({ title: t('linereport_code', { code }), value: map.get(code) || 0 });
+        newstat.push({ group: code, title: t('linereport_code', { code }), value: map.get(code) || 0 });
       }
       setStat(newstat);
     }
@@ -82,9 +100,7 @@ export function LineReportPage() {
   };
 
   const handleImport = () => {
-    setModalVisible(false);
-    setRawData('');
-    const service = new LineReportService(rawData);
+    const service = new LineReportService(rawData, appended ? data.rawdata : undefined);
     service.process().then((data) => {
       setData(data);
       refreshStat(data.students);
@@ -93,9 +109,16 @@ export function LineReportPage() {
         .collection(`linereport`)
         .doc(subject)
         .set(data)
-        .then(() => console.log(`[linereport] set ${subject} to firestore`))
-        .catch((error) => console.error(`[linereport] cannot set ${subject} to firestore`, error));
+        .then(() => {
+          console.log(`[linereport] set ${subject} to firestore`);
+          message.success(t('savesuccess'));
+        })
+        .catch((error) => {
+          console.error(`[linereport] cannot set ${subject} to firestore`, error);
+          message.success(t('savefailed'));
+        });
     });
+    handleCancel();
   };
 
   const handleExport = () => {
@@ -178,6 +201,16 @@ export function LineReportPage() {
     </Row>
   );
 
+  const datasource = () => {
+    if (data.students && data.students.length > 0) {
+      if (groupFilter === 'total') {
+        return data.students;
+      }
+      return data.students.filter(({ studentId }) => studentId.startsWith(groupFilter));
+    }
+    return [];
+  };
+
   return (
     <AppLayout className='LineReportPage'>
       <Space direction='vertical' size='large'>
@@ -191,24 +224,38 @@ export function LineReportPage() {
             })}
           </Paragraph>
         )}
-        <Row gutter={[16, 16]}>
+        <Row gutter={[16, 16]} className='LineReportPage__Stat'>
           {stat.map((s) => (
-            <Col key={s.title} xs={8} md={6} lg={4}>
+            <Col
+              key={s.title}
+              className={groupFilter === s.group ? 'LineReportPage__Stat--selected' : ''}
+              xs={8}
+              md={6}
+              lg={4}
+              onClick={() => setGroupFilter(s.group)}
+            >
               <Card>
                 <Statistic title={s.title} value={s.value} />
+                <Progress percent={(s.value / data.students.length) * 100} showInfo={false} />
               </Card>
             </Col>
           ))}
         </Row>
         <Table
-          dataSource={(data.students || []).filter(({ lineId, studentId, name }) =>
+          dataSource={datasource().filter(({ lineId, studentId, name }) =>
             filter ? lineId.indexOf(filter) >= 0 || name.indexOf(filter) >= 0 || studentId.indexOf(filter) >= 0 : true
           )}
           title={() => title}
           bordered
           rowKey='lineId'
           rowSelection={{ type: 'checkbox' }}
-          pagination={{ defaultPageSize: 50 }}
+          pagination={{ defaultPageSize: 20 }}
+          tableLayout='fixed'
+          footer={() => (
+            <a onClick={() => data.errors?.length > 0 && setErrorVisible(true)}>
+              {t('founderror', { count: data.errors?.length || 0 })}
+            </a>
+          )}
         >
           <Column
             title={t('line')}
@@ -242,22 +289,55 @@ export function LineReportPage() {
         </Table>
       </Space>
       <Modal
+        title={t('founderror', { count: data.errors?.length || 0 })}
+        visible={errorVisible}
+        onCancel={() => setErrorVisible(false)}
+        footer={
+          <Button type='primary' onClick={() => setErrorVisible(false)}>
+            {t('close')}
+          </Button>
+        }
+        width={screens.md ? 1000 : 520}
+      >
+        <div className='LineReportPage__List'>
+          <List
+            itemLayout='vertical'
+            dataSource={data.errors}
+            split={false}
+            renderItem={(item) => (
+              <List.Item>
+                <List.Item.Meta title={item.msg} description={item.datetime} />
+              </List.Item>
+            )}
+          />
+        </div>
+      </Modal>
+      <Modal
         title={t('linereport_paste')}
         visible={modalVisible}
-        style={{ top: 20 }}
         onOk={handleImport}
         onCancel={handleCancel}
         width={screens.md ? 1000 : 520}
       >
-        <TextArea
-          rows={10}
-          spellCheck='false'
-          autoCapitalize='false'
-          autoComplete='false'
-          autoCorrect='false'
-          autoSave='false'
-          onChange={(e) => setRawData(e.target.value)}
-        />
+        <Row gutter={[0, 15]}>
+          <Col xs={24}>
+            <TextArea
+              rows={10}
+              spellCheck='false'
+              autoCapitalize='false'
+              autoComplete='false'
+              autoCorrect='false'
+              autoSave='false'
+              value={rawData}
+              onChange={(e) => setRawData(e.target.value)}
+            />
+          </Col>
+          <Col xs={24}>
+            <Checkbox onChange={(e) => setAppended(e.target.checked)} checked={appended}>
+              {t('linereport_append')}
+            </Checkbox>
+          </Col>
+        </Row>
       </Modal>
     </AppLayout>
   );

@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-const datePattern = /(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/;
+const datePattern = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/m;
 const timePattern = /^(\d{2}):(\d{2}) /m;
 const autoReplyPattern = /^\d{2}:\d{2} Auto-reply/;
 const studentIdPattern = /(\d{10})/;
@@ -11,20 +11,51 @@ export type Result = {
   rawdata: string;
   students: Student[];
   errors: Log[];
-  start: string | undefined;
-  end: string | undefined;
+  start: string | null;
+  end: string | null;
 };
 
 export class LineReportService {
-  rawdata;
+  rawdata: string;
   cursor = 0;
   chatDate: moment.Moment | null = null;
   start: moment.Moment | null = null;
   students = new Map<string, Student>();
   errors: Log[] = [];
 
-  constructor(rawdata: string) {
-    this.rawdata = rawdata;
+  constructor(rawdata: string, originalData?: string) {
+    this.rawdata = this._clean(originalData);
+    if (this.rawdata) {
+      this.rawdata += '\n';
+    }
+    this.rawdata += this._clean(rawdata);
+    if (this.rawdata) {
+      this.rawdata = this.rawdata.trim();
+    }
+  }
+
+  _clean(data?: string) {
+    if (!data) {
+      return '';
+    }
+    let dateIndex = -1;
+    let timeIndex = -1;
+    let m = data.match(datePattern);
+    if (m && m[0]) {
+      dateIndex = data.indexOf(m[0]);
+    }
+    m = data.match(/^\d{2}:\d{2} /m);
+    if (m && m[0]) {
+      timeIndex = data.indexOf(m[0]);
+    }
+    if (dateIndex >= 0 && timeIndex >= 0) {
+      return data.substr(dateIndex < timeIndex ? dateIndex : timeIndex);
+    } else if (dateIndex >= 0) {
+      return data.substr(dateIndex);
+    } else if (timeIndex >= 0) {
+      return data.substr(timeIndex);
+    }
+    return '';
   }
 
   _readline() {
@@ -34,12 +65,8 @@ export class LineReportService {
       let line = this.rawdata.substring(this.cursor, i - 1);
       this.cursor = i;
       const d = line.match(datePattern);
-      if (d && d[0] && d[1]) {
+      if (d && d[1]) {
         this.chatDate = moment(d[1], 'YYYY.MM.DD');
-        const di = line.indexOf(d[0]);
-        if (di > 0) {
-          line = line.substr(0, di);
-        }
       }
       if (this.chatDate) {
         this.chatDate.hour(parseInt(m[1]));
@@ -101,7 +128,7 @@ export class LineReportService {
           chat = msg.substring(first);
         }
       }
-      const datetime = moment(this.chatDate).toISOString(true);
+      const datetime = this.chatDate ? moment(this.chatDate).toISOString(true) : '2000-01-01T00:00:00.000+07:00';
       if (user && chat) {
         if ((m = chat.match(studentIdPattern)) && m[1]) {
           const studentId = m[1];
@@ -116,8 +143,8 @@ export class LineReportService {
       rawdata: this.rawdata,
       students: Array.from(this.students.values()),
       errors: this.errors,
-      start: this.start?.toISOString(true),
-      end: this.chatDate?.toISOString(true),
+      start: this.start?.toISOString(true) || null,
+      end: this.chatDate?.toISOString(true) || null,
     };
   }
 }
