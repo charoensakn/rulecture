@@ -28,15 +28,41 @@ export function LineReportPage() {
   const { t } = useTranslation();
   const screens = useBreakpoint();
 
+  const refreshStat = (students: Student[]) => {
+    if (!students || students.length === 0) {
+      return;
+    }
+    const map = new Map<string, number>();
+    students.forEach((s) => {
+      const code = s.studentId.substr(0, 2);
+      const count = map.get(code);
+      if (!count) {
+        map.set(code, 1);
+      } else {
+        map.set(code, count + 1);
+      }
+    });
+    if (map.size > 0) {
+      const newstat = [];
+      newstat.push({ title: t('total'), value: students.length });
+      const codes = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
+      for (let code of codes) {
+        newstat.push({ title: t('linereport_code', { code }), value: map.get(code) || 0 });
+      }
+      setStat(newstat);
+    }
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const docRef = firebase.firestore().collection(`linereport`).doc(subject);
       const doc = await docRef.get();
       if (doc.exists) {
-        const d = doc.data();
+        const d = doc.data() as Result;
         if (d) {
-          setData(d as Result);
+          setData(d);
           console.log(`[linereport] get ${subject} from firestore`);
+          refreshStat(d.students);
           return;
         }
       }
@@ -61,22 +87,7 @@ export function LineReportPage() {
     const service = new LineReportService(rawData);
     service.process().then((data) => {
       setData(data);
-      const map = new Map<string, number>();
-      data.students.forEach((s) => {
-        const code = s.studentId.substr(0, 2);
-        const count = map.get(code);
-        if (!count) {
-          map.set(code, 1);
-        } else {
-          map.set(code, count + 1);
-        }
-      });
-      const newstat = [];
-      newstat.push({ title: t('total'), value: data.students.length });
-      const codes = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
-      for (let code of codes) {
-        newstat.push({ title: t('linereport_code', { code }), value: map.get(code) || 0 });
-      }
+      refreshStat(data.students);
       return firebase
         .firestore()
         .collection(`linereport`)

@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-const datePattern = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/;
+const datePattern = /(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/;
 const timePattern = /^(\d{2}):(\d{2}) /m;
 const autoReplyPattern = /^\d{2}:\d{2} Auto-reply/;
 const studentIdPattern = /(\d{10})/;
@@ -31,11 +31,15 @@ export class LineReportService {
     const m = this.rawdata.substr(this.cursor + 6, 512).match(timePattern);
     if (m && m[1] && m[2]) {
       const i = this.rawdata.indexOf(`${m[1]}:${m[2]}`, this.cursor + 6);
-      const line = this.rawdata.substring(this.cursor, i - 1);
+      let line = this.rawdata.substring(this.cursor, i - 1);
       this.cursor = i;
-      let d = line.match(datePattern);
-      if (d && d[1]) {
+      const d = line.match(datePattern);
+      if (d && d[0] && d[1]) {
         this.chatDate = moment(d[1], 'YYYY.MM.DD');
+        const di = line.indexOf(d[0]);
+        if (di > 0) {
+          line = line.substr(0, di);
+        }
       }
       if (this.chatDate) {
         this.chatDate.hour(parseInt(m[1]));

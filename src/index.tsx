@@ -1,6 +1,8 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/database';
 import 'firebase/firestore';
+import 'firebase/storage';
 import i18n from 'i18next';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -26,6 +28,9 @@ const LASTFIREBASECONFIG_KEY = 'lastfirebasecfg';
   const app = firebase.initializeApp(firebaseConfig);
   if (window.location.hostname.indexOf('localhost') >= 0) {
     app.auth().useEmulator('http://localhost:9099');
+    app.firestore().useEmulator('localhost', 8080);
+    app.database().useEmulator('localhost', 9000);
+    app.storage().useEmulator('localhost', 9199);
   }
 
   await i18n.use(initReactI18next).init({
