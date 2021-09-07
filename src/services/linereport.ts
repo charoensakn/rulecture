@@ -5,7 +5,7 @@ const DATE_PATTERN = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|
 const TIME_PATTERN = /^(\d{2}):(\d{2}) /m;
 const AUTOREPLY_PATTERN = /^\d{2}:\d{2} Auto-reply/;
 const STUDENTID_PATTERN = /(\d{10})/;
-const MSG_PATTERN = /^.*[\r\n]/;
+const MSG_PATTERN = /^.*[\s]+[\r\n]?/;
 
 export type Student = { lineId: string; studentId: string; name: string; datetime: string };
 export type Log = { msg: string; datetime: string };
@@ -71,73 +71,173 @@ export class LineReportService {
           this.start = moment(this.chatDate);
         }
       }
-      return line;
+      return d && d[0] && !line.startsWith(d[0]) ? line.substr(0, line.indexOf(d[0])) : line;
+    }
+    if (this.cursor < this.rawdata.length) {
+      const ret = this.rawdata.substr(this.cursor);
+      this.cursor += ret.length;
+      return ret;
     }
     return null;
   }
 
+  _isSystemMessage(line: string) {
+    if (line.match(AUTOREPLY_PATTERN)) {
+      return true;
+    }
+    if (line.match(DATE_PATTERN)) {
+      return true;
+    }
+    let i;
+    if ((i = line.indexOf("changed the chat's profile photo.")) >= 0 && line.length === i + 33) {
+      return true;
+    }
+    if ((i = line.indexOf('joined the chat.')) >= 0 && line.length === i + 16) {
+      return true;
+    }
+    if ((i = line.indexOf('unsent a message.')) >= 0 && line.length === i + 17) {
+      return true;
+    }
+    if ((i = line.indexOf('Photos')) >= 0 && line.length === i + 6) {
+      return true;
+    }
+    if ((i = line.indexOf('added Auto-reply to the chat.')) >= 0 && line.length === i + 29) {
+      return true;
+    }
+    if ((i = line.indexOf('changed the chat\'s name to "')) >= 0 && line.length > i + 28) {
+      return true;
+    }
+    return false;
+  }
+
+  _extractUser(line: string) {
+    if (line.match(AUTOREPLY_PATTERN)) {
+      return null;
+    }
+    if (line.match(DATE_PATTERN)) {
+      return null;
+    }
+    let i;
+    if ((i = line.indexOf("changed the chat's profile photo.")) >= 0 && line.length === i + 33) {
+      return line.substring(5, i).trim();
+    }
+    if ((i = line.indexOf('joined the chat.')) >= 0 && line.length === i + 16) {
+      return line.substring(5, i).trim();
+    }
+    if ((i = line.indexOf('unsent a message.')) >= 0 && line.length === i + 17) {
+      return line.substring(5, i).trim();
+    }
+    if ((i = line.indexOf('Photos')) >= 0 && line.length === i + 6) {
+      return line.substring(5, i).trim();
+    }
+    if ((i = line.indexOf('added Auto-reply to the chat.')) >= 0 && line.length === i + 29) {
+      return line.substring(5, i).trim();
+    }
+    if ((i = line.indexOf('changed the chat\'s name to "')) >= 0 && line.length > i + 28) {
+      return line.substring(5, i).trim();
+    }
+    let ret = null;
+    let msg = line.substring(6);
+    const m = msg.match(STUDENTID_PATTERN);
+    if (m && m[1]) {
+      const found = msg.lastIndexOf(m[1]);
+      if (found > 0) {
+        ret = msg.substr(0, found - 1).trim();
+        const s = ret.split(/\s+/g);
+        if (s[0] && s[1] && s[1].localeCompare(s[0]) === 0) {
+          ret = s[0];
+        }
+        if (s[0] && s[0].length >= 10 && s[0].match(STUDENTID_PATTERN)) {
+          if (s[0].length > 10) {
+            ret = s[0];
+          } else if (s[0].length === 10 && s[1]) {
+            ret = msg.substr(0, msg.indexOf(s[1]) + s[1].length);
+          }
+        } else if (s[1] && s[1].length === 10 && s[1].match(STUDENTID_PATTERN)) {
+          ret = msg.substr(0, msg.indexOf(s[1]) + s[1].length);
+        }
+      }
+    }
+    return ret ? ret : null;
+  }
+
+  _extractStudent = (line: string) => {
+    const m = line.match(STUDENTID_PATTERN);
+    if (m && m[1]) {
+      const id = m[1];
+      const name = line.replaceAll(m[1], '').replaceAll('\u200B', '').replaceAll(/\s+/g, ' ').trim();
+      return { id, name };
+    }
+    return null;
+  };
+
   async process(): Promise<Result> {
-    const users = new Set<string>();
-    let m: RegExpMatchArray | null;
-    let i: number;
+    const userSet = new Set<string>();
     let line: string | null;
     while ((line = this._readline())) {
-      if ((i = line.indexOf("changed the chat's profile photo.")) >= 0) {
-        users.add(line.substring(5, i).trim());
+      const u = this._extractUser(line);
+      if (u) {
+        userSet.add(u);
+      }
+    }
+    let users: string[] = [];
+    userSet.forEach((u) => {
+      users.push(u);
+    });
+    /**
+     * sort users for longest matching
+     */
+    users.sort((a, b) => {
+      if (b.length > a.length) {
+        return 1;
+      } else if (b.length < a.length) {
+        return -1;
+      }
+      return b.localeCompare(a);
+    });
+
+    this.cursor = 0;
+    let m: RegExpMatchArray | null;
+    while ((line = this._readline())) {
+      if (this._isSystemMessage(line)) {
         continue;
       }
-      if ((i = line.indexOf('joined the chat.')) >= 0) {
-        users.add(line.substring(5, i).trim());
-        continue;
-      }
-      if ((i = line.indexOf('unsent a message.')) >= 0) {
-        users.add(line.substring(5, i).trim());
-        continue;
-      }
-      if (line.match(AUTOREPLY_PATTERN)) {
-        continue;
-      }
-      if (line.match(DATE_PATTERN)) {
-        continue;
-      }
+      const datetime = this.chatDate ? moment(this.chatDate).toISOString(true) : '2000-01-01T00:00:00.000+07:00';
+      let user = '',
+        studentId = '',
+        name = '';
       let msg = line.substring(6);
-      if ((m = msg.match(MSG_PATTERN)) && m[0]) {
-        msg = m[0];
-      }
-      let user: string | null = null;
-      let chat: string | null = null;
-      const iter = users.values();
-      let u;
-      while ((u = iter.next().value)) {
+      for (let u of users) {
         if (msg.startsWith(u)) {
           user = u;
-          chat = msg.substring(u.length + 1);
+          const chat = msg.substr(u.length);
+          /**
+           * try to extract from single line
+           * */
+          if ((m = chat.match(MSG_PATTERN)) && m[0]) {
+            const student = this._extractStudent(m[0]);
+            if (student) {
+              studentId = student.id;
+              name = student.name;
+            }
+          }
+          if (!studentId || !name) {
+            const student = this._extractStudent(chat);
+            if (student) {
+              if (!studentId) studentId = student.id;
+              if (!name) name = student.name;
+            }
+          }
           break;
         }
       }
-      if (!user && (m = msg.match(STUDENTID_PATTERN)) && m[1]) {
-        let first = msg.indexOf(m[1]);
-        let next = msg.indexOf(m[1], first + 10);
-        if (next > 0 && msg.length > next + 15) {
-          user = msg.substring(0, next - 1).trim();
-          users.add(user);
-          chat = msg.substring(next);
-        } else if (next < 0 && msg.length > first + 15) {
-          user = msg.substring(0, first - 1).trim();
-          chat = msg.substring(first);
-        }
-      }
-      const datetime = this.chatDate ? moment(this.chatDate).toISOString(true) : '2000-01-01T00:00:00.000+07:00';
-      if (user && chat) {
-        if ((m = chat.match(STUDENTID_PATTERN)) && m[1]) {
-          const studentId = m[1];
-          const name = chat.replaceAll(m[1], '').replaceAll('\u200B', '').replaceAll(/\s+/g, ' ').trim();
-          this.students.set(user, { lineId: user, studentId, name, datetime });
-        }
+      if (user && (studentId || name)) {
+        this.students.set(user, { lineId: user, studentId, name, datetime });
       } else {
         this.errors.push({ msg: line, datetime });
       }
     }
+
     return {
       rawdata: this.rawdata,
       students: Array.from(this.students.values()),
