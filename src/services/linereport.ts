@@ -202,7 +202,6 @@ export class LineReportService {
       if (this._isSystemMessage(line)) {
         continue;
       }
-      const datetime = this.chatDate ? moment(this.chatDate).toISOString(true) : '2000-01-01T00:00:00.000+07:00';
       let user = '',
         studentId = '',
         name = '';
@@ -231,6 +230,11 @@ export class LineReportService {
           break;
         }
       }
+
+      const datetime = moment(
+        this.chatDate ? this.chatDate.format('YYYYMMDD') + line.substr(0, 5) : '2000010100:00',
+        'YYYYMMDDHH:mm'
+      ).toISOString(true);
       if (user && (studentId || name)) {
         this.students.set(user, { lineId: user, studentId, name, msg: line, datetime });
       } else {
