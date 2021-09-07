@@ -1,6 +1,6 @@
 .LineReportPage {
   h4 {
-    margin: 35px 16px 10px !important;
+    margin-top: 20px !important;
   }
 
   .ant-space,
@@ -8,15 +8,7 @@
     width: 100%;
   }
 
-  .ant-typography,
-  .antdark-typography {
-    margin: 0 16px;
-  }
-
   .LineReportPage__Stat {
-    margin-left: 8px !important;
-    margin-right: 8px !important;
-
     .LineReportPage__Stat--selected {
       .ant-card {
         background-color: #e6f7ff;
@@ -24,6 +16,12 @@
       .antdark-card {
         background-color: #002766;
       }
+    }
+  }
+
+  .antdark-table-container {
+    @media screen and (max-width: 1091px) {
+      width: calc(100vw - 45px);
     }
   }
 }

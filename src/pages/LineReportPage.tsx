@@ -13,6 +13,7 @@ import {
   Space,
   Statistic,
   Table,
+  Tooltip,
   Typography,
 } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
@@ -249,8 +250,7 @@ export function LineReportPage() {
           bordered
           rowKey='lineId'
           rowSelection={{ type: 'checkbox' }}
-          pagination={{ defaultPageSize: 20 }}
-          tableLayout='fixed'
+          scroll={{ x: 950 }}
           footer={() => (
             <a onClick={() => data.errors?.length > 0 && setErrorVisible(true)}>
               {t('founderror', { count: data.errors?.length || 0 })}
@@ -262,6 +262,8 @@ export function LineReportPage() {
             dataIndex='lineId'
             key='lineId'
             sorter={(a: Student, b: Student) => a.lineId.localeCompare(b.lineId)}
+            fixed='left'
+            width={200}
           />
           <Column
             title={t('studentid')}
@@ -269,23 +271,26 @@ export function LineReportPage() {
             key='studentId'
             sorter={(a: Student, b: Student) => a.studentId.localeCompare(b.studentId)}
             align='center'
+            width='30%'
           />
           <Column
             title={t('name')}
             dataIndex='name'
             key='name'
             sorter={(a: Student, b: Student) => a.name.localeCompare(b.name)}
+            width='40%'
           />
-          {screens.lg && (
-            <Column
-              title={t('reportdate')}
-              dataIndex='datetime'
-              key='datetime'
-              align='center'
-              sorter={(a: Student, b: Student) => a.datetime.localeCompare(b.datetime)}
-              render={(text) => moment(text).format('YYYY-MM-DD HH:mm')}
-            />
-          )}
+          <Column
+            title={t('reportdate')}
+            dataIndex='datetime'
+            key='datetime'
+            align='center'
+            sorter={(a: Student, b: Student) => a.datetime.localeCompare(b.datetime)}
+            render={(_, record) => (
+              <Tooltip title={record.msg}>{moment(record.datetime).format('YYYY-MM-DD HH:mm')}</Tooltip>
+            )}
+            width='30%'
+          />
         </Table>
       </Space>
       <Modal

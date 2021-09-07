@@ -5,9 +5,9 @@ const DATE_PATTERN = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|
 const TIME_PATTERN = /^(\d{2}):(\d{2}) /m;
 const AUTOREPLY_PATTERN = /^\d{2}:\d{2} Auto-reply/;
 const STUDENTID_PATTERN = /(\d{10})/;
-const MSG_PATTERN = /^.*[\s]+[\r\n]?/;
+const MSG_PATTERN = /^.*[\s]+[\r\n]+/;
 
-export type Student = { lineId: string; studentId: string; name: string; datetime: string };
+export type Student = { lineId: string; studentId: string; name: string; msg: string; datetime: string };
 export type Log = { msg: string; datetime: string };
 export type Result = {
   rawdata: string;
@@ -232,7 +232,7 @@ export class LineReportService {
         }
       }
       if (user && (studentId || name)) {
-        this.students.set(user, { lineId: user, studentId, name, datetime });
+        this.students.set(user, { lineId: user, studentId, name, msg: line, datetime });
       } else {
         this.errors.push({ msg: line, datetime });
       }

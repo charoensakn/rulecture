@@ -6,6 +6,7 @@ import {
   MenuOutlined,
   SettingOutlined,
   UserOutlined,
+  LoginOutlined,
 } from '@ant-design/icons';
 import { Affix, Breadcrumb, Descriptions, Drawer, Empty, Layout, Menu, Space } from 'antd';
 import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
@@ -126,7 +127,7 @@ export function AppLayout({
       {windowHeight >= 576 && (
         <Fragment>
           <p>
-            <strong>{auth.displayName}</strong>
+            <strong>{auth.uid ? auth.displayName : t('guest')}</strong>
           </p>
           <p>{auth.email}</p>
         </Fragment>
@@ -138,9 +139,15 @@ export function AppLayout({
         <Menu.Item key='setting' icon={<SettingOutlined />}>
           <Link to='/setting'>{t('setting')}</Link>
         </Menu.Item>
-        <Menu.Item key='logout' icon={<LogoutOutlined />}>
-          <Link to='/logout'>{t('logout')}</Link>
-        </Menu.Item>
+        {auth.uid ? (
+          <Menu.Item key='logout' icon={<LogoutOutlined />}>
+            <Link to='/logout'>{t('logout')}</Link>
+          </Menu.Item>
+        ) : (
+          <Menu.Item key='login' icon={<LoginOutlined />}>
+            <Link to='/login'>{t('login')}</Link>
+          </Menu.Item>
+        )}
       </Menu>
     </div>
   );

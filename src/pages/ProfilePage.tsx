@@ -44,11 +44,10 @@ export function ProfilePage() {
               title={() => <h2>{t('profile_access')}</h2>}
               dataSource={devDatasource}
               bordered
-              tableLayout='fixed'
               rowSelection={{ type: 'checkbox', getCheckboxProps: (record) => ({ id: record.id }) }}
             >
-              <Column title={t('location')} dataIndex='path' key='path' />
-              {screens.sm && <Column title={t('accessdate')} dataIndex='date' key='date' />}
+              <Column title={t('location')} dataIndex='path' key='path' width={screens.sm ? '70%' : '100%'} />
+              {screens.sm && <Column title={t('accessdate')} dataIndex='date' key='date' width='30%' align='center' />}
             </Table>
           </Col>
         </Row>
@@ -59,11 +58,18 @@ export function ProfilePage() {
               title={() => <h2>{t('profile_device')}</h2>}
               dataSource={devDatasource}
               bordered
-              tableLayout='fixed'
               rowSelection={{ type: 'checkbox', getCheckboxProps: (record) => ({ id: record.id }) }}
             >
-              <Column title={t('device')} dataIndex='name' key='name' ellipsis={!screens.sm ? true : undefined} />
-              {screens.sm && <Column title={t('lastlogin')} dataIndex='datetime' key='datetime' />}
+              <Column
+                title={t('device')}
+                dataIndex='name'
+                key='name'
+                ellipsis={!screens.sm ? true : undefined}
+                width={screens.sm ? '70%' : '100%'}
+              />
+              {screens.sm && (
+                <Column title={t('lastlogin')} dataIndex='datetime' key='datetime' width='30%' align='center' />
+              )}
             </Table>
           </Col>
         </Row>

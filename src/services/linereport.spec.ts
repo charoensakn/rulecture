@@ -3,7 +3,7 @@ import 'jest';
 import path from 'path';
 import { LineReportService } from './linereport';
 
-const rawdata = fs.readFileSync(path.join(__dirname, 'linereport2.txt'), 'utf-8');
+const rawdata = fs.readFileSync(path.join(__dirname, 'linereport3.txt'), 'utf-8');
 
 const originalData = `abcdef
 2021.09.05 Sunday
@@ -38,7 +38,7 @@ const service = new LineReportService(rawdata);
 
 test('process line report service', async () => {
   const result = await service.process();
-  console.log(result.errors);
+  console.log(result.students);
 });
 
 test('clean data', () => {
