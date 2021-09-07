@@ -1,9 +1,11 @@
 import moment from 'moment';
+import { mergeString } from '../util';
 
-const datePattern = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/m;
-const timePattern = /^(\d{2}):(\d{2}) /m;
-const autoReplyPattern = /^\d{2}:\d{2} Auto-reply/;
-const studentIdPattern = /(\d{10})/;
+const DATE_PATTERN = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/m;
+const TIME_PATTERN = /^(\d{2}):(\d{2}) /m;
+const AUTOREPLY_PATTERN = /^\d{2}:\d{2} Auto-reply/;
+const STUDENTID_PATTERN = /(\d{10})/;
+const MSG_PATTERN = /^.*[\r\n]/;
 
 export type Student = { lineId: string; studentId: string; name: string; datetime: string };
 export type Log = { msg: string; datetime: string };
@@ -24,23 +26,17 @@ export class LineReportService {
   errors: Log[] = [];
 
   constructor(rawdata: string, originalData?: string) {
-    this.rawdata = this._clean(originalData);
-    if (this.rawdata) {
-      this.rawdata += '\n';
-    }
-    this.rawdata += this._clean(rawdata);
-    if (this.rawdata) {
-      this.rawdata = this.rawdata.trim();
-    }
+    this.rawdata = mergeString(this._clean(originalData), this._clean(rawdata), '\n');
   }
 
   _clean(data?: string) {
     if (!data) {
       return '';
     }
+    let ret = '';
     let dateIndex = -1;
     let timeIndex = -1;
-    let m = data.match(datePattern);
+    let m = data.match(DATE_PATTERN);
     if (m && m[0]) {
       dateIndex = data.indexOf(m[0]);
     }
@@ -49,22 +45,22 @@ export class LineReportService {
       timeIndex = data.indexOf(m[0]);
     }
     if (dateIndex >= 0 && timeIndex >= 0) {
-      return data.substr(dateIndex < timeIndex ? dateIndex : timeIndex);
+      ret = data.substr(dateIndex < timeIndex ? dateIndex : timeIndex);
     } else if (dateIndex >= 0) {
-      return data.substr(dateIndex);
+      ret = data.substr(dateIndex);
     } else if (timeIndex >= 0) {
-      return data.substr(timeIndex);
+      ret = data.substr(timeIndex);
     }
-    return '';
+    return ret.trim();
   }
 
   _readline() {
-    const m = this.rawdata.substr(this.cursor + 6, 512).match(timePattern);
+    const m = this.rawdata.substr(this.cursor + 6, 1024).match(TIME_PATTERN);
     if (m && m[1] && m[2]) {
       const i = this.rawdata.indexOf(`${m[1]}:${m[2]}`, this.cursor + 6);
       let line = this.rawdata.substring(this.cursor, i - 1);
       this.cursor = i;
-      const d = line.match(datePattern);
+      const d = line.match(DATE_PATTERN);
       if (d && d[1]) {
         this.chatDate = moment(d[1], 'YYYY.MM.DD');
       }
@@ -98,13 +94,16 @@ export class LineReportService {
         users.add(line.substring(5, i).trim());
         continue;
       }
-      if (line.match(autoReplyPattern)) {
+      if (line.match(AUTOREPLY_PATTERN)) {
         continue;
       }
-      if (line.match(datePattern)) {
+      if (line.match(DATE_PATTERN)) {
         continue;
       }
-      const msg = line.substring(6);
+      let msg = line.substring(6);
+      if ((m = msg.match(MSG_PATTERN)) && m[0]) {
+        msg = m[0];
+      }
       let user: string | null = null;
       let chat: string | null = null;
       const iter = users.values();
@@ -116,7 +115,7 @@ export class LineReportService {
           break;
         }
       }
-      if (!user && (m = msg.match(studentIdPattern)) && m[1]) {
+      if (!user && (m = msg.match(STUDENTID_PATTERN)) && m[1]) {
         let first = msg.indexOf(m[1]);
         let next = msg.indexOf(m[1], first + 10);
         if (next > 0 && msg.length > next + 15) {
@@ -130,13 +129,13 @@ export class LineReportService {
       }
       const datetime = this.chatDate ? moment(this.chatDate).toISOString(true) : '2000-01-01T00:00:00.000+07:00';
       if (user && chat) {
-        if ((m = chat.match(studentIdPattern)) && m[1]) {
+        if ((m = chat.match(STUDENTID_PATTERN)) && m[1]) {
           const studentId = m[1];
           const name = chat.replaceAll(m[1], '').replaceAll('\u200B', '').replaceAll(/\s+/g, ' ').trim();
           this.students.set(user, { lineId: user, studentId, name, datetime });
         }
       } else {
-        this.errors.push({ msg, datetime });
+        this.errors.push({ msg: line, datetime });
       }
     }
     return {
