@@ -31,8 +31,7 @@ export function MyHeaderIcon({
         <Button type='text' onClick={() => onClose && onClose()}>
           <CloseOutlined />
         </Button>
-      }
-    >
+      }>
       {children}
     </Card>
   );

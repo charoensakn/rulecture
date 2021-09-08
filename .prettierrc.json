@@ -6,6 +6,7 @@
   "endOfLine": "lf",
   "singleQuote": true,
   "jsxSingleQuote": true,
+  "jsxBracketSameLine": true,
   "arrowParens": "always",
   "proseWrap": "always"
 }

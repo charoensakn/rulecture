@@ -21,6 +21,7 @@ export class LineReportService {
   rawdata: string;
   cursor = 0;
   chatDate: moment.Moment | null = null;
+  nextDate: moment.Moment | null = null;
   start: moment.Moment | null = null;
   students = new Map<string, Student>();
   errors: Log[] = [];
@@ -55,6 +56,10 @@ export class LineReportService {
   }
 
   _readline() {
+    if (this.nextDate) {
+      this.chatDate = this.nextDate;
+      this.nextDate = null;
+    }
     const m = this.rawdata.substr(this.cursor + 6, 1024).match(TIME_PATTERN);
     if (m && m[1] && m[2]) {
       const i = this.rawdata.indexOf(`${m[1]}:${m[2]}`, this.cursor + 6);
@@ -62,7 +67,11 @@ export class LineReportService {
       this.cursor = i;
       const d = line.match(DATE_PATTERN);
       if (d && d[1]) {
-        this.chatDate = moment(d[1], 'YYYY.MM.DD');
+        if (this.chatDate) {
+          this.nextDate = moment(d[1], 'YYYY.MM.DD');
+        } else {
+          this.chatDate = moment(d[1], 'YYYY.MM.DD');
+        }
       }
       if (this.chatDate) {
         this.chatDate.hour(parseInt(m[1]));
@@ -206,7 +215,7 @@ export class LineReportService {
         studentId = '',
         name = '';
       let msg = line.substring(6);
-      for (let u of users) {
+      for (const u of users) {
         if (msg.startsWith(u)) {
           user = u;
           const chat = msg.substr(u.length);
@@ -237,7 +246,7 @@ export class LineReportService {
       ).toISOString(true);
       if (user && (studentId || name)) {
         this.students.set(user, { lineId: user, studentId, name, msg: line, datetime });
-      } else {
+      } else if (!user) {
         this.errors.push({ msg: line, datetime });
       }
     }

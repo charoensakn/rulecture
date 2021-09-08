@@ -24,8 +24,7 @@ export function MyFooter() {
             <Popover
               placement='top'
               content={<img src={lineqrcode} width={200} height={200} alt='LINE' />}
-              trigger='click'
-            >
+              trigger='click'>
               <a>
                 <MessageOutlined />
               </a>

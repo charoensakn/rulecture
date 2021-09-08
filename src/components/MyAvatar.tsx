@@ -6,7 +6,7 @@ import { AuthContext } from '../ctx';
 export function MyAvatar({ size = 'default', shape = 'circle' }: PropsWithoutRef<AvatarProps>) {
   const { auth } = useContext(AuthContext);
   let child = <Avatar icon={<UserOutlined />} size={size} shape={shape} />;
-  if (auth) {
+  if (auth.uid) {
     if (auth.photoURL) {
       child = <Avatar src={auth.photoURL} size={size} shape={shape} />;
     } else {

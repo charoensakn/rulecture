@@ -19,12 +19,14 @@ import {
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import firebase from 'firebase';
+import firebase from 'firebase/app';
+import 'firebase/database';
 import 'firebase/firestore';
 import moment from 'moment';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
+import { AuthContext } from '../ctx';
 import { AppLayout } from '../layouts/AppLayout';
 import { LineReportService, Result, Student } from '../services/linereport';
 import './LineReportPage.less';
@@ -42,10 +44,13 @@ export function LineReportPage() {
   const [groupFilter, setGroupFilter] = useState('total');
   const [appended, setAppended] = useState(true);
   const [errorVisible, setErrorVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const { subject } = useParams<{ subject: string }>();
   const { t } = useTranslation();
   const screens = useBreakpoint();
+  const location = useLocation();
+  const { pushRecentLocation } = useContext(AuthContext);
 
   const refreshStat = (students: Student[]) => {
     if (!students || students.length === 0) {
@@ -65,35 +70,36 @@ export function LineReportPage() {
       const newstat = [];
       newstat.push({ group: 'total', title: t('total'), value: students.length });
       const codes = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
-      for (let code of codes) {
+      for (const code of codes) {
         newstat.push({ group: code, title: t('linereport_code', { code }), value: map.get(code) || 0 });
       }
       setStat(newstat);
     }
   };
 
-  const fetchData = useCallback(async () => {
-    try {
-      const docRef = firebase.firestore().collection(`linereport`).doc(subject);
-      const doc = await docRef.get();
-      if (doc.exists) {
-        const d = doc.data() as Result;
-        if (d) {
-          setData(d);
-          console.log(`[linereport] get ${subject} from firestore`);
-          refreshStat(d.students);
-          return;
-        }
-      }
-      console.log('[linereport] no saved data');
-    } catch (error) {
-      console.error(`[linereport] cannot get ${subject} from firestore`, error);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    (async () => {
+      try {
+        const docRef = firebase.firestore().collection(`linereport`).doc(subject);
+        const doc = await docRef.get();
+        if (doc.exists) {
+          const d = doc.data() as Result;
+          if (d) {
+            setData(d);
+            console.log(`[linereport] get ${subject} from firestore`);
+            refreshStat(d.students);
+            return;
+          }
+        }
+        console.log('[linereport] no saved data');
+      } catch (error) {
+        console.error(`[linereport] cannot get ${subject} from firestore`, error);
+      } finally {
+        setLoading(false);
+        pushRecentLocation(t('linereport_title', { subject: t(`/${subject}`) }), location.pathname);
+      }
+    })();
+  }, [subject]);
 
   const handleCancel = () => {
     setModalVisible(false);
@@ -150,7 +156,7 @@ export function LineReportPage() {
         };
       }
     }
-    for (let i of ['A', 'B', 'C', 'D']) {
+    for (const i of ['A', 'B', 'C', 'D']) {
       const cell = sheet.getCell(`${i}1`);
       cell.border = {
         top: { style: 'thin' },
@@ -160,7 +166,7 @@ export function LineReportPage() {
       };
     }
     for (let j = 0; j < data.students.length; j++) {
-      for (let i of ['A', 'B', 'C', 'D']) {
+      for (const i of ['A', 'B', 'C', 'D']) {
         const cell = sheet.getCell(`${i}${j + 2}`);
         if (j === data.students.length - 1) {
           cell.border = {
@@ -233,8 +239,7 @@ export function LineReportPage() {
               xs={8}
               md={6}
               lg={4}
-              onClick={() => setGroupFilter(s.group)}
-            >
+              onClick={() => setGroupFilter(s.group)}>
               <Card>
                 <Statistic title={s.title} value={s.value} />
                 <Progress percent={(s.value / data.students.length) * 100} showInfo={false} />
@@ -251,12 +256,12 @@ export function LineReportPage() {
           rowKey='lineId'
           rowSelection={{ type: 'checkbox' }}
           scroll={{ x: 950 }}
+          loading={loading}
           footer={() => (
             <a onClick={() => data.errors?.length > 0 && setErrorVisible(true)}>
               {t('founderror', { count: data.errors?.length || 0 })}
             </a>
-          )}
-        >
+          )}>
           <Column
             title={t('line')}
             dataIndex='lineId'
@@ -302,8 +307,7 @@ export function LineReportPage() {
             {t('close')}
           </Button>
         }
-        width={screens.md ? 1000 : 520}
-      >
+        width={screens.md ? 1000 : 520}>
         <div className='LineReportPage__List'>
           <List
             itemLayout='vertical'
@@ -322,8 +326,7 @@ export function LineReportPage() {
         visible={modalVisible}
         onOk={handleImport}
         onCancel={handleCancel}
-        width={screens.md ? 1000 : 520}
-      >
+        width={screens.md ? 1000 : 520}>
         <Row gutter={[0, 15]}>
           <Col xs={24}>
             <TextArea

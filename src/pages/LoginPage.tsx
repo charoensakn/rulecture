@@ -1,6 +1,4 @@
 import { Space, Typography } from 'antd';
-import firebase from 'firebase/app';
-import 'firebase/auth';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Redirect } from 'react-router-dom';
@@ -20,13 +18,13 @@ export function LoginPage() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    fetch('https://connectivitycheck.gstatic.com/generate_204', { mode: 'no-cors' }).catch(() => setOffline(true));
-    const unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        login(user);
+    (async () => {
+      try {
+        await fetch('https://connectivitycheck.gstatic.com/generate_204', { mode: 'no-cors' });
+      } catch {
+        setOffline(true);
       }
-    });
-    return () => unregisterAuthObserver();
+    })();
   }, []);
 
   return (

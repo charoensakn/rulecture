@@ -47,7 +47,7 @@ export function SignedInPage() {
       <Row>
         <Col span={24}>
           <Link to={to} replace>
-            {t('backtohome')}
+            {t(to === '/' ? 'backtohome' : 'backtoprevious')}
           </Link>
         </Col>
       </Row>

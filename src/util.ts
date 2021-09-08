@@ -16,6 +16,22 @@ export const localStorage = {
   },
 };
 
+export const sessionStorage = {
+  set: (key: string, value: any) => {
+    if (window.sessionStorage) {
+      window.sessionStorage.setItem(key, JSON.stringify(value));
+    }
+  },
+  get: (key: string) => {
+    return window.sessionStorage ? JSON.parse(window.localStorage.getItem(key) || 'null') : null;
+  },
+  remove: (key: string) => {
+    if (window.sessionStorage) {
+      window.sessionStorage.removeItem(key);
+    }
+  },
+};
+
 export const useQuery = () => {
   return new URLSearchParams(useLocation().search);
 };

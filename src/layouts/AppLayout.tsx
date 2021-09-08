@@ -1,17 +1,20 @@
 import {
+  ArrowLeftOutlined,
   BellFilled,
   HomeFilled,
   InfoCircleOutlined,
+  LoginOutlined,
   LogoutOutlined,
   MenuOutlined,
   SettingOutlined,
   UserOutlined,
-  LoginOutlined,
 } from '@ant-design/icons';
-import { Affix, Breadcrumb, Descriptions, Drawer, Empty, Layout, Menu, Space } from 'antd';
+import { Affix, Breadcrumb, Descriptions, Divider, Drawer, Empty, Layout, Menu, Space, Typography } from 'antd';
+import firebase from 'firebase/app';
+import 'firebase/database';
 import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import packageJson from '../../package.json';
 import { MyAvatar } from '../components/MyAvatar';
 import { MyFooter } from '../components/MyFooter';
@@ -20,6 +23,7 @@ import { AuthContext, SettingContext } from '../ctx';
 import './AppLayout.less';
 
 const { Header, Content } = Layout;
+const { Title, Text, Paragraph } = Typography;
 
 export function AppLayout({
   className,
@@ -32,11 +36,15 @@ export function AppLayout({
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [informationText, setInformationText] = useState('');
   const [activeMenu, setActiveMenu] = useState(0);
+  const [recentLocations, setRecentLocations] = useState([] as { name: string; url: string }[]);
 
   const { auth } = useContext(AuthContext);
   const { setting } = useContext(SettingContext);
   const { t } = useTranslation();
   const location = useLocation();
+  const history = useHistory();
+
+  const recentLocationsRef = firebase.database().ref(`users/${auth.uid}/recentLocations`);
 
   let lastScrollY = 0;
   let lastScrollTime = 0;
@@ -47,9 +55,6 @@ export function AppLayout({
       setWindowHeight(window.innerHeight);
     };
     window.addEventListener('resize', handleResize);
-    if (!window.matchMedia('(display-mode: standalone)').matches) {
-      setInformationText(t('applayout_info_installing_pwa'));
-    }
     const handleScroll = () => {
       if (!setting.autoHide) {
         if (!headerShowed) {
@@ -74,12 +79,30 @@ export function AppLayout({
         setHeaderShowed(true);
       }
     };
+    /**
+     * recent locations
+     */
     window.addEventListener('scroll', handleScroll);
+    let handleValue: any = null;
+    if (auth.uid) {
+      handleValue = recentLocationsRef.on('value', (snapshot) => {
+        if (snapshot.exists()) {
+          setRecentLocations(snapshot.val() || []);
+        }
+      });
+    }
+    /**
+     * check installed pwa
+     */
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+      setInformationText(t('applayout_info_installing_pwa'));
+    }
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
+      if (handleValue) recentLocationsRef.off('value', handleValue);
     };
-  }, [headerShowed]);
+  }, [auth.uid, headerShowed]);
 
   const pathnames = location.pathname.split(/\/+/);
   let parentLink = '';
@@ -129,7 +152,7 @@ export function AppLayout({
           <p>
             <strong>{auth.uid ? auth.displayName : t('guest')}</strong>
           </p>
-          <p>{auth.email}</p>
+          <p>{auth.uid && auth.email}</p>
         </Fragment>
       )}
       <Menu>
@@ -164,9 +187,19 @@ export function AppLayout({
                 setDrawerShowed(true);
               }}
             />
-            <Link to='/'>
-              <MyHeaderIcon icon={<HomeFilled />} onClick={() => setActiveMenu(0)} />
-            </Link>
+            {history.action === 'PUSH' ? (
+              <MyHeaderIcon
+                icon={<ArrowLeftOutlined />}
+                onClick={() => {
+                  setActiveMenu(0);
+                  history.goBack();
+                }}
+              />
+            ) : (
+              <Link to='/'>
+                <MyHeaderIcon icon={<HomeFilled />} onClick={() => setActiveMenu(0)} />
+              </Link>
+            )}
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
           <div className='AppLayout__Fill'></div>
@@ -179,15 +212,16 @@ export function AppLayout({
               activeMenu={activeMenu}
               windowWidth={windowWidth}
               onClick={() => setActiveMenu(1)}
-              onClose={() => setActiveMenu(0)}
-            >
-              {informationText || (
-                <Descriptions bordered size='small' column={1}>
-                  <Descriptions.Item label={t('name')}>{packageJson.name}</Descriptions.Item>
-                  <Descriptions.Item label={t('version')}>{packageJson.version}</Descriptions.Item>
-                  <Descriptions.Item label={t('desc')}>{packageJson.description}</Descriptions.Item>
-                  <Descriptions.Item label={t('uid')}>{auth.uid}</Descriptions.Item>
-                </Descriptions>
+              onClose={() => setActiveMenu(0)}>
+              <Descriptions bordered size='small' column={1}>
+                <Descriptions.Item label={t('name')}>{packageJson.description}</Descriptions.Item>
+                <Descriptions.Item label={t('version')}>{packageJson.version}</Descriptions.Item>
+              </Descriptions>
+              {informationText && (
+                <Fragment>
+                  <Divider />
+                  <Paragraph>{informationText}</Paragraph>
+                </Fragment>
               )}
             </MyHeaderIcon>
             <MyHeaderIcon
@@ -198,8 +232,7 @@ export function AppLayout({
               activeMenu={activeMenu}
               windowWidth={windowWidth}
               onClick={() => setActiveMenu(2)}
-              onClose={() => setActiveMenu(0)}
-            >
+              onClose={() => setActiveMenu(0)}>
               {noti}
             </MyHeaderIcon>
             <MyHeaderIcon
@@ -211,8 +244,7 @@ export function AppLayout({
               activeMenu={activeMenu}
               windowWidth={windowWidth}
               onClick={() => setActiveMenu(3)}
-              onClose={() => setActiveMenu(0)}
-            >
+              onClose={() => setActiveMenu(0)}>
               {account}
             </MyHeaderIcon>
           </Space>
@@ -223,15 +255,34 @@ export function AppLayout({
       </Content>
       <MyFooter />
       <Drawer
+        className='AppLayout__Drawer'
         title={t('applayout_drawer_title')}
         placement='left'
         closable
         onClose={() => setDrawerShowed(false)}
-        visible={drawerShowed}
-      >
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-        <p>Some contents...</p>
+        visible={drawerShowed}>
+        <Title level={5}>
+          <Link to='/'>{t('/')}</Link>
+        </Title>
+        <Title level={5}>
+          <Link to='/subjects'>{t('/subjects')}</Link>
+        </Title>
+        <Title level={5}>
+          <Link to='/books'>{t('/books')}</Link>
+        </Title>
+        <Title level={5}>
+          <Link to='/lectures'>{t('/lectures')}</Link>
+        </Title>
+        <Title level={5}>
+          <Link to='/apps'>{t('/apps')}</Link>
+        </Title>
+        <Divider />
+        <Title level={5}>{t('recentlocation')}</Title>
+        {recentLocations.map((recent, index) => (
+          <Paragraph key={index}>
+            <Link to={recent.url}>{recent.name}</Link>
+          </Paragraph>
+        ))}
       </Drawer>
     </Layout>
   );

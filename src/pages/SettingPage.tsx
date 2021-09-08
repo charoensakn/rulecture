@@ -9,8 +9,15 @@ import './SettingPage.less';
 const { Text, Title } = Typography;
 
 export function SettingPage() {
-  const { setting, changeLanguage, changeRounding, changeDarkMode, changeAutoHide, changeAutoHideSensitivity } =
-    useContext(SettingContext);
+  const {
+    setting,
+    changeLanguage,
+    changeRounding,
+    changeDarkMode,
+    changeAutoHide,
+    changeAutoHideSensitivity,
+    changePersistence,
+  } = useContext(SettingContext);
   const { t } = useTranslation();
   const screens = useBreakpoint();
 
@@ -41,6 +48,14 @@ export function SettingPage() {
             </Radio.Group>
           </Col>
         </Row>
+        {window.matchMedia('(display-mode: standalone)').matches && (
+          <Row>
+            <Col>{t('setting_persistence')}</Col>
+            <Col>
+              <Switch defaultChecked={setting.persistence} onChange={(checked) => changePersistence(checked)} />
+            </Col>
+          </Row>
+        )}
       </Card>
       <Title level={3}>{t('setting_ui')}</Title>
       <Card>

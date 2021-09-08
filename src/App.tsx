@@ -1,6 +1,10 @@
 import { ConfigProvider } from 'antd';
+import enUS from 'antd/lib/locale/en_US';
+import thTH from 'antd/lib/locale/th_TH';
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/database';
+import i18n from 'i18next';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 import './App.less';
@@ -8,17 +12,17 @@ import { ScrollToTop } from './components/ScrollToTop';
 import {
   Auth,
   AuthContext,
-  ChangeAutoHideFn,
-  ChangeAutoHideSensitivityFn,
-  ChangeDarkModeFn,
-  ChangeLanguageFn,
-  ChangeRoundingFn,
+  ChangeBooleanFn,
+  ChangeNumberFn,
+  ChangeStringFn,
   LoginFn,
   LogoutFn,
+  PushRecentLocationFn,
   Setting,
   SettingContext,
 } from './ctx';
 import { HomePage } from './pages/HomePage';
+import { LineReportPage } from './pages/LineReportPage';
 import { LoginPage } from './pages/LoginPage';
 import { LogoutPage } from './pages/LogoutPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -26,12 +30,14 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingPage } from './pages/SettingPage';
 import { SignedInPage } from './pages/SignedInPage';
 import { encodeLocation, localStorage } from './util';
-import enUS from 'antd/lib/locale/en_US';
-import thTH from 'antd/lib/locale/th_TH';
-import i18n from 'i18next';
-import { LineReportPage } from './pages/LineReportPage';
 
 const LASTLOGIN_KEY = 'lastlogin';
+const LANG_KEY = 'lang';
+const ROUNDING_KEY = 'rounding';
+const DARKMODE_KEY = 'darkmode';
+const AUTOHIDE_KEY = 'autohide';
+const AUTOHIDESENSE_KEY = 'autohidesense';
+const PERSISTENCE_KEY = 'persistence';
 const BODY = document.getElementsByTagName('body')[0];
 
 function PrivateRoute({ exact, path, children }: React.PropsWithChildren<{ exact?: boolean; path: string }>) {
@@ -50,12 +56,11 @@ function PrivateRoute({ exact, path, children }: React.PropsWithChildren<{ exact
   );
 }
 
-function getAuth(user?: firebase.User | null) {
+function getAuth(user?: firebase.User): Auth {
   if (user === undefined) {
     const auth = localStorage.get(LASTLOGIN_KEY);
-    if (auth && auth.uid) {
-      return auth as Auth;
-    }
+    const u = firebase.auth().currentUser;
+    return { ...auth, uid: u ? u.uid : null };
   }
 
   if (!user || !user.uid) {
@@ -76,7 +81,6 @@ function getAuth(user?: firebase.User | null) {
 
 function App() {
   const [auth, setAuth] = useState<Auth>(getAuth());
-  console.log('[app] uid:', auth.uid);
 
   const login: LoginFn = useCallback((user) => {
     const a = getAuth(user);
@@ -89,30 +93,60 @@ function App() {
     return firebase
       .auth()
       .signOut()
-      .then(() => {
-        setAuth({});
-      });
+      .then(() => setAuth({}));
   }, []);
 
-  const [language, setLanguage] = useState(localStorage.get('lang') || 'th');
-  const [rounding, setRounding] = useState(localStorage.get('rounding') || 0);
-  const [darkMode, setDarkMode] = useState(localStorage.get('darkmode') || false);
-  const [autoHide, setAutoHide] = useState(localStorage.get('autohide') || true);
-  const [autoHideSensitivity, setAutoHideSensitivity] = useState(localStorage.get('autohidesense') || 2);
+  const pushRecentLocation: PushRecentLocationFn = useCallback(
+    async (name: string, url: string) => {
+      if (auth.uid) {
+        console.log('[app] push recent location:', url);
+        const urls = [{ name, url }];
+        const db = firebase.database().ref(`users/${auth.uid}/recentLocations`);
+        const snapshot = await db.get();
+        if (snapshot.exists()) {
+          let count = 0;
+          for (const val of snapshot.val()) {
+            if (val.name && val.url && val.url !== url) {
+              urls.push({ name: val.name, url: val.url });
+            }
+            if (++count >= 14) break;
+          }
+        }
+        await db.set(urls);
+      }
+    },
+    [auth.uid]
+  );
+
+  const [language, setLanguage] = useState(localStorage.get(LANG_KEY) || 'th');
+  const [rounding, setRounding] = useState(localStorage.get(ROUNDING_KEY) || 0);
+  const [darkMode, setDarkMode] = useState(localStorage.get(DARKMODE_KEY) || false);
+  const [autoHide, setAutoHide] = useState(localStorage.get(AUTOHIDE_KEY) || true);
+  const [persistence, setPersistence] = useState(localStorage.get(PERSISTENCE_KEY) || false);
+  const [autoHideSensitivity, setAutoHideSensitivity] = useState(localStorage.get(AUTOHIDESENSE_KEY) || 2);
 
   useEffect(() => {
-    localStorage.set('lang', language);
-    localStorage.set('rounding', rounding);
-    localStorage.set('darkmode', darkMode);
-    localStorage.set('autohide', autoHide);
-    localStorage.set('autohidesense', autoHideSensitivity);
+    localStorage.set(LANG_KEY, language);
+    localStorage.set(ROUNDING_KEY, rounding);
+    localStorage.set(DARKMODE_KEY, darkMode);
+    localStorage.set(AUTOHIDE_KEY, autoHide);
+    localStorage.set(AUTOHIDESENSE_KEY, autoHideSensitivity);
+    localStorage.set(PERSISTENCE_KEY, persistence);
 
     if (BODY) {
       BODY.style.backgroundColor = darkMode ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
     }
 
     i18n.changeLanguage(language);
-  });
+
+    const unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
+      console.log('[app] auth uid:', user?.uid);
+      if (user) {
+        login(user);
+      }
+    });
+    return () => unregisterAuthObserver();
+  }, [darkMode, language]);
 
   const setting: Setting = {
     language,
@@ -120,44 +154,55 @@ function App() {
     darkMode,
     autoHide,
     autoHideSensitivity,
+    persistence,
   };
 
-  const changeLanguage: ChangeLanguageFn = (value) => {
+  const changeLanguage: ChangeStringFn = (value) => {
     setLanguage(value);
-    localStorage.set('lang', value);
+    localStorage.set(LANG_KEY, value);
     i18n.changeLanguage(value);
   };
-  const changeRounding: ChangeRoundingFn = (value) => {
+  const changeRounding: ChangeNumberFn = (value) => {
     setRounding(value);
-    localStorage.set('rounding', value);
+    localStorage.set(ROUNDING_KEY, value);
   };
-  const changeDarkMode: ChangeDarkModeFn = (value) => {
+  const changeDarkMode: ChangeBooleanFn = (value) => {
     setDarkMode(value);
-    localStorage.set('darkmode', value);
+    localStorage.set(DARKMODE_KEY, value);
     if (BODY) {
       BODY.style.backgroundColor = value ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
     }
   };
-  const changeAutoHide: ChangeAutoHideFn = (value) => {
+  const changeAutoHide: ChangeBooleanFn = (value) => {
     setAutoHide(value);
-    localStorage.set('autohide', value);
+    localStorage.set(AUTOHIDE_KEY, value);
   };
-  const changeAutoHideSensitivity: ChangeAutoHideSensitivityFn = (value) => {
+  const changeAutoHideSensitivity: ChangeNumberFn = (value) => {
     setAutoHideSensitivity(value);
-    localStorage.set('autohidesense', value);
+    localStorage.set(AUTOHIDESENSE_KEY, value);
+  };
+  const changePersistence: ChangeBooleanFn = (value) => {
+    setPersistence(value);
+    localStorage.set(PERSISTENCE_KEY, value);
   };
 
   return (
     <SettingContext.Provider
-      value={{ setting, changeLanguage, changeRounding, changeDarkMode, changeAutoHide, changeAutoHideSensitivity }}
-    >
+      value={{
+        setting,
+        changeLanguage,
+        changeRounding,
+        changeDarkMode,
+        changeAutoHide,
+        changeAutoHideSensitivity,
+        changePersistence,
+      }}>
       <SettingContext.Consumer>
         {({ setting }) => (
           <ConfigProvider
             locale={setting.language === 'en' ? enUS : thTH}
-            prefixCls={setting.darkMode ? 'antdark' : 'ant'}
-          >
-            <AuthContext.Provider value={{ auth, login, logout }}>
+            prefixCls={setting.darkMode ? 'antdark' : 'ant'}>
+            <AuthContext.Provider value={{ auth, login, logout, pushRecentLocation }}>
               <div className='App'>
                 <Router>
                   <ScrollToTop />
@@ -171,11 +216,11 @@ function App() {
                     <Route path='/apps/linereport/:subject'>
                       <LineReportPage />
                     </Route>
+                    <Route path='/setting'>
+                      <SettingPage />
+                    </Route>
                     <PrivateRoute path='/signed-in'>
                       <SignedInPage />
-                    </PrivateRoute>
-                    <PrivateRoute path='/setting'>
-                      <SettingPage />
                     </PrivateRoute>
                     <PrivateRoute path='/profile'>
                       <ProfilePage />

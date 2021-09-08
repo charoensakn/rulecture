@@ -1,5 +1,5 @@
 import { Col, Row, Space, Typography } from 'antd';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../ctx';
@@ -10,13 +10,12 @@ export function LogoutPage() {
   const [loggedOut, setLoggedOut] = useState(false);
   const { t } = useTranslation();
 
-  const fn = useCallback(async () => {
-    await logout();
-    setLoggedOut(true);
-  }, []);
   useEffect(() => {
-    fn();
-  }, [fn]);
+    (async () => {
+      await logout();
+      setLoggedOut(true);
+    })();
+  }, []);
 
   return (
     <BoxLayout>

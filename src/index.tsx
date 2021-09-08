@@ -2,7 +2,6 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/firestore';
-import 'firebase/storage';
 import i18n from 'i18next';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -30,7 +29,22 @@ const LASTFIREBASECONFIG_KEY = 'lastfirebasecfg';
     app.auth().useEmulator('http://localhost:9099');
     app.firestore().useEmulator('localhost', 8080);
     app.database().useEmulator('localhost', 9000);
-    app.storage().useEmulator('localhost', 9199);
+  }
+  await app.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  app.auth().languageCode = localStorage.get('lang') || 'th';
+  const unsubscribe = await new Promise<firebase.Unsubscribe>((resolve) => {
+    const unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
+      resolve(unregisterAuthObserver);
+    });
+  });
+  unsubscribe();
+  try {
+    if (localStorage.get('persistence') && window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('[bootstrap] enable firestore persistence');
+      await firebase.firestore().enablePersistence();
+    }
+  } catch (error) {
+    console.error('[bootstrap] failed to enable firestore persistence', error);
   }
 
   await i18n.use(initReactI18next).init({
