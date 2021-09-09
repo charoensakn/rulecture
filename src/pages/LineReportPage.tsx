@@ -25,7 +25,7 @@ import 'firebase/firestore';
 import moment from 'moment';
 import React, { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useParams } from 'react-router';
+import { Redirect, useLocation, useParams } from 'react-router';
 import { AuthContext } from '../ctx';
 import { AppLayout } from '../layouts/AppLayout';
 import { LineReportService, Result, Student } from '../services/linereport';
@@ -51,6 +51,10 @@ export function LineReportPage() {
   const screens = useBreakpoint();
   const location = useLocation();
   const { pushRecentLocation } = useContext(AuthContext);
+
+  if (t(`/${subject}`) === `/${subject}`) {
+    return <Redirect to='/pagenotfound' />;
+  }
 
   const refreshStat = (students: Student[]) => {
     if (!students || students.length === 0) {
@@ -254,7 +258,6 @@ export function LineReportPage() {
           title={() => title}
           bordered
           rowKey='lineId'
-          rowSelection={{ type: 'checkbox' }}
           scroll={{ x: 950 }}
           loading={loading}
           footer={() => (

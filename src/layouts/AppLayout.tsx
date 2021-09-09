@@ -25,6 +25,8 @@ import './AppLayout.less';
 const { Header, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
+const HEADER_THRESHOLD = 90;
+
 export function AppLayout({
   className,
   fullWidth,
@@ -62,7 +64,7 @@ export function AppLayout({
       }
       const scrollY = window.scrollY;
       const scrollTime = Date.now();
-      if (scrollY > 250) {
+      if (scrollY > HEADER_THRESHOLD) {
         const s = 10.1 - (setting.autoHideSensitivity || 10);
         const v = (scrollY - lastScrollY) / (scrollTime - lastScrollTime);
         if (v < -1 * s && !headerShowed) {
@@ -117,7 +119,7 @@ export function AppLayout({
   }
   let current = t(`/${pathnames[pathnames.length - 1]}`);
   if (current && current.startsWith('/')) {
-    current = current.substr(1);
+    current = t('/pagenotfound');
   }
   const links: JSX.Element[] = [];
   if (windowWidth >= 768 && pathnames.length > 1 && pathnames[pathnames.length - 1]) {
@@ -178,7 +180,7 @@ export function AppLayout({
     <Layout className='AppLayout'>
       <Affix className={headerShowed ? '' : 'AppLayout__Header--hide'}>
         <Header className='AppLayout__Header'>
-          <Space size='small'>
+          <Space size='small' className='AppLayout__Fill'>
             <MyHeaderIcon
               icon={<MenuOutlined />}
               onClick={() => {
@@ -201,7 +203,6 @@ export function AppLayout({
             )}
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
-          <div className='AppLayout__Fill'></div>
           <Space size='small'>
             <MyHeaderIcon
               key={1}

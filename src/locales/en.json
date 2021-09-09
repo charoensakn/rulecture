@@ -6,6 +6,7 @@
   "/books": "Books",
   "/lectures": "Lectures",
   "/linereport": "LINE",
+  "/pagenotfound": "404",
   "/profile": "Profile",
   "/setting": "Setting",
   "/subjects": "Subjects",

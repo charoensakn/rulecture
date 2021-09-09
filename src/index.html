@@ -2,7 +2,7 @@
 <html lang="th">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=480, initial-scale=1" />
+    <meta name="viewport" content="width=device-width initial-scale=1" />
     <meta name="theme-color" content="#1890ff" />
     <meta name="background-color" content="#1890ff" />
     <meta name="description" content="RU Lecture Client (PWA)" />
@@ -67,15 +67,17 @@
 
   <body>
     <div id="root">
-      <div style="background-color: #f0f2f5; height: 100vh; width: 100vw; padding: 50px">
+      <div style="background-color: #f0f2f5; height: 100vh; width: 100vw; padding: 0 15px; text-align: center">
         <div
           style="
+            display: inline-block;
             background-image: url('/loading.gif');
-            background-size: auto;
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             width: 100%;
             height: 100%;
+            max-width: 480px;
           "
         ></div>
       </div>

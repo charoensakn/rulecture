@@ -15,6 +15,7 @@ import { localStorage } from './util';
 
 const LASTFIREBASECONFIG_KEY = 'lastfirebasecfg';
 const CLIENTID_KEY = 'clientid';
+const TESTHOST = '192.168.0.12';
 
 (async () => {
   let firebaseConfig;
@@ -26,10 +27,10 @@ const CLIENTID_KEY = 'clientid';
     firebaseConfig = localStorage.get(LASTFIREBASECONFIG_KEY);
   }
   const app = firebase.initializeApp(firebaseConfig);
-  if (window.location.hostname.indexOf('localhost') >= 0) {
-    app.auth().useEmulator('http://localhost:9099');
-    app.firestore().useEmulator('localhost', 8080);
-    app.database().useEmulator('localhost', 9000);
+  if (window.location.hostname.indexOf(TESTHOST) >= 0) {
+    app.auth().useEmulator(`http://${TESTHOST}:9099`);
+    app.firestore().useEmulator(TESTHOST, 8080);
+    app.database().useEmulator(TESTHOST, 9000);
   }
   await app.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   app.auth().languageCode = localStorage.get('lang') || 'th';

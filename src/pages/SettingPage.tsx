@@ -23,7 +23,7 @@ export function SettingPage() {
 
   return (
     <AppLayout className='SettingPage'>
-      <Title level={3}>{t('setting_general')}</Title>
+      <Title level={4}>{t('setting_general')}</Title>
       <Card>
         <Row>
           <Col>{t('language')}</Col>
@@ -57,7 +57,7 @@ export function SettingPage() {
           </Row>
         )}
       </Card>
-      <Title level={3}>{t('setting_ui')}</Title>
+      <Title level={4}>{t('setting_ui')}</Title>
       <Card>
         <Row>
           <Col>{t('setting_darkmode')}</Col>

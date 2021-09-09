@@ -69,7 +69,7 @@ export function ProfilePage() {
         <Row>
           <Col xs={24}>
             <Table
-              title={() => <Title level={3}>{t('profile_access')}</Title>}
+              title={() => <Title level={4}>{t('profile_access')}</Title>}
               dataSource={recentLocations}
               rowKey='url'
               bordered>
@@ -97,7 +97,7 @@ export function ProfilePage() {
         <Row>
           <Col xs={24}>
             <Table
-              title={() => <Title level={3}>{t('profile_device')}</Title>}
+              title={() => <Title level={4}>{t('profile_device')}</Title>}
               dataSource={devices}
               rowKey='id'
               bordered>
