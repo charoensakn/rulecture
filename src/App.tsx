@@ -5,7 +5,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/database';
 import i18n from 'i18next';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
 import './App.less';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -38,7 +38,9 @@ const DARKMODE_KEY = 'darkmode';
 const AUTOHIDE_KEY = 'autohide';
 const AUTOHIDESENSE_KEY = 'autohidesense';
 const PERSISTENCE_KEY = 'persistence';
-const BODY = document.getElementsByTagName('body')[0];
+
+const BODY = document.querySelector('body');
+const THEMECOLOR = document.querySelector('meta[name="theme-color"]');
 
 function PrivateRoute({ exact, path, children }: React.PropsWithChildren<{ exact?: boolean; path: string }>) {
   const { auth } = useContext(AuthContext);
@@ -81,49 +83,54 @@ function getAuth(user?: firebase.User): Auth {
 
 function App() {
   const [auth, setAuth] = useState<Auth>(getAuth());
-
-  const login: LoginFn = useCallback((user) => {
-    const a = getAuth(user);
-    setAuth(a);
-    localStorage.set(LASTLOGIN_KEY, a);
-  }, []);
-
-  const logout: LogoutFn = useCallback(async () => {
-    localStorage.remove(LASTLOGIN_KEY);
-    return firebase
-      .auth()
-      .signOut()
-      .then(() => setAuth({}));
-  }, []);
-
-  const pushRecentLocation: PushRecentLocationFn = useCallback(
-    async (name: string, url: string) => {
-      if (auth.uid) {
-        console.log('[app] push recent location:', url);
-        const urls = [{ name, url }];
-        const db = firebase.database().ref(`users/${auth.uid}/recentLocations`);
-        const snapshot = await db.get();
-        if (snapshot.exists()) {
-          let count = 0;
-          for (const val of snapshot.val()) {
-            if (val.name && val.url && val.url !== url) {
-              urls.push({ name: val.name, url: val.url });
-            }
-            if (++count >= 14) break;
-          }
-        }
-        await db.set(urls);
-      }
-    },
-    [auth.uid]
-  );
-
   const [language, setLanguage] = useState(localStorage.get(LANG_KEY) || 'th');
   const [rounding, setRounding] = useState(localStorage.get(ROUNDING_KEY) || 0);
   const [darkMode, setDarkMode] = useState(localStorage.get(DARKMODE_KEY) || false);
   const [autoHide, setAutoHide] = useState(localStorage.get(AUTOHIDE_KEY) || true);
   const [persistence, setPersistence] = useState(localStorage.get(PERSISTENCE_KEY) || false);
   const [autoHideSensitivity, setAutoHideSensitivity] = useState(localStorage.get(AUTOHIDESENSE_KEY) || 2);
+
+  const login: LoginFn = (user) => {
+    const a = getAuth(user);
+    setAuth(a);
+    localStorage.set(LASTLOGIN_KEY, a);
+  };
+
+  const logout: LogoutFn = async () => {
+    localStorage.remove(LASTLOGIN_KEY);
+    return firebase
+      .auth()
+      .signOut()
+      .then(() => setAuth({}));
+  };
+
+  const pushRecentLocation: PushRecentLocationFn = async (name: string, url: string) => {
+    if (auth.uid) {
+      console.log('[app] push recent location:', url);
+      const urls = [{ name, url, datetime: firebase.database.ServerValue.TIMESTAMP }];
+      const db = firebase.database().ref(`users/${auth.uid}/recentLocations`);
+      const snapshot = await db.get();
+      if (snapshot.exists()) {
+        let count = 0;
+        for (const val of snapshot.val()) {
+          if (val.name && val.url && val.url !== url) {
+            urls.push({ name: val.name, url: val.url, datetime: val.datetime });
+          }
+          if (++count >= 14) break;
+        }
+      }
+      await db.set(urls);
+    }
+  };
+
+  const switchTheme = (dark?: boolean) => {
+    if (BODY) {
+      BODY.style.backgroundColor = dark ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
+    }
+    if (THEMECOLOR) {
+      THEMECOLOR.setAttribute('content', dark ? '#000' : '#1890ff');
+    }
+  };
 
   useEffect(() => {
     localStorage.set(LANG_KEY, language);
@@ -133,9 +140,7 @@ function App() {
     localStorage.set(AUTOHIDESENSE_KEY, autoHideSensitivity);
     localStorage.set(PERSISTENCE_KEY, persistence);
 
-    if (BODY) {
-      BODY.style.backgroundColor = darkMode ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
-    }
+    switchTheme(darkMode);
 
     i18n.changeLanguage(language);
 
@@ -168,10 +173,8 @@ function App() {
   };
   const changeDarkMode: ChangeBooleanFn = (value) => {
     setDarkMode(value);
+    switchTheme(value);
     localStorage.set(DARKMODE_KEY, value);
-    if (BODY) {
-      BODY.style.backgroundColor = value ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
-    }
   };
   const changeAutoHide: ChangeBooleanFn = (value) => {
     setAutoHide(value);

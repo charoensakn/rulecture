@@ -1,22 +1,50 @@
 import { Card, Col, Descriptions, Divider, Row, Space, Table, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center } from '../components/Center';
 import { MyAvatar } from '../components/MyAvatar';
 import { AuthContext } from '../ctx';
 import { AppLayout } from '../layouts/AppLayout';
 import './ProfilePage.less';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import { Link } from 'react-router-dom';
+import moment from 'moment';
 
 const { Column } = Table;
 const { Title } = Typography;
 
+type Device = { id: string; dev: string; datetime: number };
+
 export function ProfilePage() {
+  const [recentLocations, setRecentLocations] = useState([]);
+  const [devices, setDevices] = useState([] as Device[]);
+
   const { auth } = useContext(AuthContext);
   const screens = useBreakpoint();
   const { t } = useTranslation();
 
-  const devDatasource: any = [];
+  useEffect(() => {
+    (async () => {
+      const db = firebase.database().ref(`users/${auth.uid}`);
+      const snapshot = await db.get();
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        if (val.recentLocations) {
+          setRecentLocations(val.recentLocations);
+        }
+        if (val.devices) {
+          const list: Device[] = [];
+          for (const k in val.devices) {
+            list.push({ id: k, dev: val.devices[k].dev, datetime: val.devices[k].datetime });
+          }
+          list.sort((a, b) => b.datetime - a.datetime);
+          setDevices(list);
+        }
+      }
+    })();
+  }, []);
 
   return (
     <AppLayout className='ProfilePage'>
@@ -41,12 +69,27 @@ export function ProfilePage() {
         <Row>
           <Col xs={24}>
             <Table
-              title={() => <h2>{t('profile_access')}</h2>}
-              dataSource={devDatasource}
-              bordered
-              rowSelection={{ type: 'checkbox', getCheckboxProps: (record) => ({ id: record.id }) }}>
-              <Column title={t('location')} dataIndex='path' key='path' width={screens.sm ? '70%' : '100%'} />
-              {screens.sm && <Column title={t('accessdate')} dataIndex='date' key='date' width='30%' align='center' />}
+              title={() => <Title level={3}>{t('profile_access')}</Title>}
+              dataSource={recentLocations}
+              rowKey='url'
+              bordered>
+              <Column
+                title={t('location')}
+                dataIndex='name'
+                key='name'
+                width={screens.sm ? '65%' : '100%'}
+                render={(value, record: { url: string }) => <Link to={record.url}>{value}</Link>}
+              />
+              {screens.sm && (
+                <Column
+                  title={t('accessdate')}
+                  dataIndex='datetime'
+                  key='datetime'
+                  width='35%'
+                  align='center'
+                  render={(value) => moment(value).format('YYYY-MM-DD HH:mm')}
+                />
+              )}
             </Table>
           </Col>
         </Row>
@@ -54,19 +97,26 @@ export function ProfilePage() {
         <Row>
           <Col xs={24}>
             <Table
-              title={() => <h2>{t('profile_device')}</h2>}
-              dataSource={devDatasource}
-              bordered
-              rowSelection={{ type: 'checkbox', getCheckboxProps: (record) => ({ id: record.id }) }}>
+              title={() => <Title level={3}>{t('profile_device')}</Title>}
+              dataSource={devices}
+              rowKey='id'
+              bordered>
               <Column
                 title={t('device')}
-                dataIndex='name'
-                key='name'
-                ellipsis={!screens.sm ? true : undefined}
-                width={screens.sm ? '70%' : '100%'}
+                dataIndex='dev'
+                key='dev'
+                ellipsis={!screens.md ? true : undefined}
+                width={screens.sm ? '65%' : '100%'}
               />
               {screens.sm && (
-                <Column title={t('lastlogin')} dataIndex='datetime' key='datetime' width='30%' align='center' />
+                <Column
+                  title={t('lastlogin')}
+                  dataIndex='datetime'
+                  key='datetime'
+                  width='35%'
+                  align='center'
+                  render={(value) => moment(value).format('YYYY-MM-DD HH:mm')}
+                />
               )}
             </Table>
           </Col>

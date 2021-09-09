@@ -44,8 +44,6 @@ export function AppLayout({
   const location = useLocation();
   const history = useHistory();
 
-  const recentLocationsRef = firebase.database().ref(`users/${auth.uid}/recentLocations`);
-
   let lastScrollY = 0;
   let lastScrollTime = 0;
 
@@ -82,6 +80,7 @@ export function AppLayout({
     /**
      * recent locations
      */
+    const recentLocationsRef = firebase.database().ref(`users/${auth.uid}/recentLocations`);
     window.addEventListener('scroll', handleScroll);
     let handleValue: any = null;
     if (auth.uid) {
@@ -276,13 +275,17 @@ export function AppLayout({
         <Title level={5}>
           <Link to='/apps'>{t('/apps')}</Link>
         </Title>
-        <Divider />
-        <Title level={5}>{t('recentlocation')}</Title>
-        {recentLocations.map((recent, index) => (
-          <Paragraph key={index}>
-            <Link to={recent.url}>{recent.name}</Link>
-          </Paragraph>
-        ))}
+        {recentLocations && recentLocations.length > 0 && (
+          <Fragment>
+            <Divider />
+            <Title level={5}>{t('recentlocation')}</Title>
+            {recentLocations.map((recent, index) => (
+              <Paragraph key={index}>
+                <Link to={recent.url}>{recent.name}</Link>
+              </Paragraph>
+            ))}
+          </Fragment>
+        )}
       </Drawer>
     </Layout>
   );

@@ -14,6 +14,7 @@ import './index.less';
 import { localStorage } from './util';
 
 const LASTFIREBASECONFIG_KEY = 'lastfirebasecfg';
+const CLIENTID_KEY = 'clientid';
 
 (async () => {
   let firebaseConfig;
@@ -35,6 +36,18 @@ const LASTFIREBASECONFIG_KEY = 'lastfirebasecfg';
   const unsubscribe = await new Promise<firebase.Unsubscribe>((resolve) => {
     const unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
       resolve(unregisterAuthObserver);
+      if (user && user.uid) {
+        const db = app.database().ref(`/users/${user.uid}/devices`);
+        db.on('child_added', (data) => {
+          localStorage.set(CLIENTID_KEY, data.key);
+        });
+        const clientId = localStorage.get(CLIENTID_KEY);
+        const deviceRef = clientId ? db.child(clientId) : db.push();
+        deviceRef.set({
+          dev: window.navigator.userAgent,
+          datetime: firebase.database.ServerValue.TIMESTAMP,
+        });
+      }
     });
   });
   unsubscribe();
