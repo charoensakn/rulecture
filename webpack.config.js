@@ -3,7 +3,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
 const path = require('path');
-const { webpack } = require('webpack');
 const { IgnorePlugin } = require('webpack');
 
 const mode = process.env.NODE_ENV || 'development';
@@ -19,17 +18,18 @@ const plugins = [
   new IgnorePlugin(/^\.\/functions$/, /firebase$/),
   new IgnorePlugin(/^\.\/remote-config$/, /firebase$/),
   new IgnorePlugin(/^\.\/performance$/, /firebase$/),
+  new WorkboxPlugin.InjectManifest({
+    swSrc: './src/service-worker.ts',
+    maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
+    exclude: [
+      /^fonts\/NotoSans(Thai)?-(?:Black|BlackItalic|BoldItalic|ExtraBold|ExtraBoldItalic|ExtraLight|ExtraLightItalic|Italic|Light|LightItalic|MediumItalic|SemiBoldItalic|Thin|ThinItalic)\.ttf/,
+      /^fonts\/NotoMono[^.]+\.ttf/,
+      /^fonts\/LICENSE_OFL\.txt/,
+      /^ip[^.]+\.png/,
+      /^robots\.txt/,
+    ],
+  }),
 ];
-
-if (mode !== 'development') {
-  plugins.push(
-    new WorkboxPlugin.GenerateSW({
-      clientsClaim: true,
-      skipWaiting: true,
-      maximumFileSizeToCacheInBytes: mode === 'development' ? 52428800 : 5242880,
-    })
-  );
-}
 
 module.exports = {
   mode,

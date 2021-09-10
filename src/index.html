@@ -67,33 +67,30 @@
 
   <body>
     <div id="root">
-      <div style="background-color: #f0f2f5; height: 100vh; width: 100vw; padding: 0 15px; text-align: center">
+      <script>
+        const dark = window.localStorage.getItem('darkmode') === 'true';
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.setAttribute('content', dark ? '#000' : '#1890ff');
+        }
+        document.write(`
+        <div style="background-color: ${
+          dark ? '#000' : '#f0f2f5'
+        }; height: 100vh; width: 100vw; padding: 0 15px; text-align: center">
         <div
           style="
             display: inline-block;
-            background-image: url('/loading.gif');
+            background-image: url('/loading${dark ? 'dark' : ''}.gif');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             width: 100%;
             height: 100%;
             max-width: 480px;
-          "
-        ></div>
+          "></div>
       </div>
+        `);
+      </script>
     </div>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/service-worker.js')
-            .then((registration) => {
-              console.log('[sw] registered.');
-              registration.update();
-            })
-            .catch(() => console.log('[sw] registration failed.'));
-        });
-      }
-    </script>
   </body>
 </html>

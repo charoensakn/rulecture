@@ -88,7 +88,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(localStorage.get(DARKMODE_KEY) || false);
   const [autoHide, setAutoHide] = useState(localStorage.get(AUTOHIDE_KEY) || true);
   const [persistence, setPersistence] = useState(localStorage.get(PERSISTENCE_KEY) || false);
-  const [autoHideSensitivity, setAutoHideSensitivity] = useState(localStorage.get(AUTOHIDESENSE_KEY) || 2);
+  const [autoHideSensitivity, setAutoHideSensitivity] = useState(localStorage.get(AUTOHIDESENSE_KEY) || 10);
 
   const login: LoginFn = (user) => {
     const a = getAuth(user);
