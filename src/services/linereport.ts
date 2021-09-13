@@ -4,7 +4,7 @@ import { mergeString } from '../util';
 const DATE_PATTERN = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/m;
 const TIME_PATTERN = /^(\d{2}):(\d{2}) /m;
 const AUTOREPLY_PATTERN = /^\d{2}:\d{2} Auto-reply/;
-const STUDENTID_PATTERN = /(\d{10})/;
+const STUDENTID_PATTERN = /([@]?\d{10})/;
 const MSG_PATTERN = /^.*[\s]+[\r\n]+/;
 
 export type Student = { lineId: string; studentId: string; name: string; msg: string; datetime: string };
@@ -19,10 +19,11 @@ export type Result = {
 
 export class LineReportService {
   rawdata: string;
-  cursor = 0;
-  chatDate: moment.Moment | null = null;
-  nextDate: moment.Moment | null = null;
-  start: moment.Moment | null = null;
+  _cursor = 0;
+  _chatDate: moment.Moment | null = null;
+  _nextDate: moment.Moment | null = null;
+  start: string | null = null;
+  end: string | null = null;
   students = new Map<string, Student>();
   errors: Log[] = [];
 
@@ -56,35 +57,35 @@ export class LineReportService {
   }
 
   _readline() {
-    if (this.nextDate) {
-      this.chatDate = this.nextDate;
-      this.nextDate = null;
+    if (this._nextDate) {
+      this._chatDate = this._nextDate;
+      this._nextDate = null;
     }
-    const m = this.rawdata.substr(this.cursor + 6, 1024).match(TIME_PATTERN);
+    const m = this.rawdata.substr(this._cursor + 6, 1024).match(TIME_PATTERN);
     if (m && m[1] && m[2]) {
-      const i = this.rawdata.indexOf(`${m[1]}:${m[2]}`, this.cursor + 6);
-      let line = this.rawdata.substring(this.cursor, i - 1);
-      this.cursor = i;
+      const i = this.rawdata.indexOf(`${m[1]}:${m[2]}`, this._cursor + 6);
+      let line = this.rawdata.substring(this._cursor, i - 1);
+      this._cursor = i;
       const d = line.match(DATE_PATTERN);
       if (d && d[1]) {
-        if (this.chatDate) {
-          this.nextDate = moment(d[1], 'YYYY.MM.DD');
+        if (this._chatDate) {
+          this._nextDate = moment(d[1], 'YYYY.MM.DD');
         } else {
-          this.chatDate = moment(d[1], 'YYYY.MM.DD');
+          this._chatDate = moment(d[1], 'YYYY.MM.DD');
         }
       }
-      if (this.chatDate) {
-        this.chatDate.hour(parseInt(m[1]));
-        this.chatDate.minute(parseInt(m[2]));
+      if (this._chatDate) {
+        this._chatDate.hour(parseInt(m[1]));
+        this._chatDate.minute(parseInt(m[2]));
         if (!this.start) {
-          this.start = moment(this.chatDate);
+          this.start = moment(this._chatDate).toISOString(true);
         }
       }
       return d && d[0] && !line.startsWith(d[0]) ? line.substr(0, line.indexOf(d[0])) : line;
     }
-    if (this.cursor < this.rawdata.length) {
-      const ret = this.rawdata.substr(this.cursor);
-      this.cursor += ret.length;
+    if (this._cursor < this.rawdata.length) {
+      const ret = this.rawdata.substr(this._cursor);
+      this._cursor += ret.length;
       return ret;
     }
     return null;
@@ -148,21 +149,34 @@ export class LineReportService {
     let ret = null;
     let msg = line.substring(6);
     const m = msg.match(STUDENTID_PATTERN);
-    if (m && m[1]) {
+    if (m && m[1] && m[1].length === 10) {
       const found = msg.lastIndexOf(m[1]);
       if (found > 0) {
         ret = msg.substr(0, found - 1).trim();
         const s = ret.split(/\s+/g);
         if (s[0] && s[1] && s[1].localeCompare(s[0]) === 0) {
+          /**
+           * 0123456789 ? 0123456789 ?
+           * name name ? 0123456789 ?
+           */
           ret = s[0];
         }
-        if (s[0] && s[0].length >= 10 && s[0].match(STUDENTID_PATTERN)) {
+        if (s[0] && s[0].length >= 10 && s[0].match(m[1])) {
           if (s[0].length > 10) {
+            /**
+             * 0123456789name ? 0123456789 ?
+             */
             ret = s[0];
           } else if (s[0].length === 10 && s[1]) {
+            /**
+             * 0123456789 name ? 0123456789 ?
+             */
             ret = msg.substr(0, msg.indexOf(s[1]) + s[1].length);
           }
-        } else if (s[1] && s[1].length === 10 && s[1].match(STUDENTID_PATTERN)) {
+        } else if (s[1] && s[1].length === 10 && s[1].localeCompare(m[1]) === 0) {
+          /**
+           * name 0123456789 ? 0123456789 ?
+           */
           ret = msg.substr(0, msg.indexOf(s[1]) + s[1].length);
         }
       }
@@ -172,7 +186,7 @@ export class LineReportService {
 
   _extractStudent = (line: string) => {
     const m = line.match(STUDENTID_PATTERN);
-    if (m && m[1]) {
+    if (m && m[1] && m[1].length === 10) {
       const id = m[1];
       const name = line.replaceAll(m[1], '').replaceAll('\u200B', '').replaceAll(/\s+/g, ' ').trim();
       return { id, name };
@@ -205,7 +219,7 @@ export class LineReportService {
       return b.localeCompare(a);
     });
 
-    this.cursor = 0;
+    this._cursor = 0;
     let m: RegExpMatchArray | null;
     while ((line = this._readline())) {
       if (this._isSystemMessage(line)) {
@@ -241,7 +255,7 @@ export class LineReportService {
       }
 
       const datetime = moment(
-        this.chatDate ? this.chatDate.format('YYYYMMDD') + line.substr(0, 5) : '2000010100:00',
+        this._chatDate ? this._chatDate.format('YYYYMMDD') + line.substr(0, 5) : '2000010100:00',
         'YYYYMMDDHH:mm'
       ).toISOString(true);
       if (user && (studentId || name)) {
@@ -249,14 +263,15 @@ export class LineReportService {
       } else if (!user) {
         this.errors.push({ msg: line, datetime });
       }
+      this.end = datetime;
     }
 
     return {
       rawdata: this.rawdata,
       students: Array.from(this.students.values()),
       errors: this.errors,
-      start: this.start?.toISOString(true) || null,
-      end: this.chatDate?.toISOString(true) || null,
+      start: this.start || null,
+      end: this.end || null,
     };
   }
 }

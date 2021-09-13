@@ -60,7 +60,7 @@ const initApp = async () => {
       await firebase.firestore().enablePersistence();
     }
   } catch (error) {
-    console.error('[firebase] failed to enable firestore persistence', error);
+    console.error('[firebase] failed to enable firestore persistence:', error);
   }
 
   await i18n.use(initReactI18next).init({
@@ -70,7 +70,6 @@ const initApp = async () => {
       escapeValue: false,
     },
   });
-
   ReactDOM.render(<App />, document.getElementById('root'));
 };
 
@@ -95,7 +94,7 @@ if ('serviceWorker' in navigator) {
         registration.update();
       };
     } catch (error) {
-      console.error('[sw] error', error);
+      console.error('[sw] error:', error);
     } finally {
       if (registered) {
         navigator.serviceWorker.ready.then(() => {

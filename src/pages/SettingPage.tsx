@@ -17,6 +17,8 @@ export function SettingPage() {
     changeAutoHide,
     changeAutoHideSensitivity,
     changePersistence,
+    changeDarkModeFastSwitch,
+    changeLanguageFastSwitch,
   } = useContext(SettingContext);
   const { t } = useTranslation();
   const screens = useBreakpoint();
@@ -32,6 +34,15 @@ export function SettingPage() {
               <Radio.Button value='en'>ENG</Radio.Button>
               <Radio.Button value='th'>ไทย</Radio.Button>
             </Radio.Group>
+          </Col>
+        </Row>
+        <Row>
+          <Col>{t('setting_languagefast')}</Col>
+          <Col>
+            <Switch
+              defaultChecked={setting.languageFastSwitch}
+              onChange={(checked) => changeLanguageFastSwitch(checked)}
+            />
           </Col>
         </Row>
         <Row>
@@ -63,6 +74,15 @@ export function SettingPage() {
           <Col>{t('setting_darkmode')}</Col>
           <Col>
             <Switch defaultChecked={setting.darkMode} onChange={(checked) => changeDarkMode(checked)} />
+          </Col>
+        </Row>
+        <Row>
+          <Col>{t('setting_darkmodefast')}</Col>
+          <Col>
+            <Switch
+              defaultChecked={setting.darkModeFastSwitch}
+              onChange={(checked) => changeDarkModeFastSwitch(checked)}
+            />
           </Col>
         </Row>
         <Row>

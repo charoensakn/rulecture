@@ -59,3 +59,19 @@ export const mergeString = (s1: string, s2: string, join?: string) => {
   }
   return s1.concat(join && s1.length > 0 && s2.length > 0 ? join : '', s2.substr(from));
 };
+
+const nf0 = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 });
+const nf2 = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
+const nf4 = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 4 });
+
+export const numberFormat = (num: number, fraction = 4) => {
+  switch (fraction) {
+    case 4:
+      return nf4.format(num);
+    case 2:
+      return nf2.format(num);
+    case 0:
+      return nf0.format(num);
+  }
+  return new Intl.NumberFormat('th-TH', { maximumFractionDigits: fraction }).format(num);
+};

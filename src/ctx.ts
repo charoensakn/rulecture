@@ -34,6 +34,8 @@ export type Setting = {
   autoHide?: boolean;
   autoHideSensitivity?: number;
   persistence?: boolean;
+  languageFastSwitch?: boolean;
+  darkModeFastSwitch?: boolean;
 };
 export type ChangeStringFn = (value: string) => void;
 export type ChangeNumberFn = (value: number) => void;
@@ -47,6 +49,8 @@ export const SettingContext = createContext<{
   changeAutoHide: ChangeBooleanFn;
   changeAutoHideSensitivity: ChangeNumberFn;
   changePersistence: ChangeBooleanFn;
+  changeLanguageFastSwitch: ChangeBooleanFn;
+  changeDarkModeFastSwitch: ChangeBooleanFn;
 }>({
   setting: {},
   changeLanguage: () => {},
@@ -55,4 +59,6 @@ export const SettingContext = createContext<{
   changeAutoHide: () => {},
   changeAutoHideSensitivity: () => {},
   changePersistence: () => {},
+  changeLanguageFastSwitch: () => {},
+  changeDarkModeFastSwitch: () => {},
 });

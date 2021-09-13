@@ -32,7 +32,7 @@ import { LineReportService, Result, Student } from '../services/linereport';
 import './LineReportPage.less';
 
 const { Column } = Table;
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Link } = Typography;
 const { TextArea } = Input;
 
 export function LineReportPage() {
@@ -97,7 +97,7 @@ export function LineReportPage() {
         }
         console.log('[linereport] no saved data');
       } catch (error) {
-        console.error(`[linereport] cannot get ${subject} from firestore`, error);
+        console.error(`[linereport] cannot get ${subject} from firestore:`, error);
       } finally {
         setLoading(false);
         pushRecentLocation(t('linereport_title', { subject: t(`/${subject}`) }), location.pathname);
@@ -125,7 +125,7 @@ export function LineReportPage() {
           message.success(t('savesuccess'));
         })
         .catch((error) => {
-          console.error(`[linereport] cannot set ${subject} to firestore`, error);
+          console.error(`[linereport] cannot set ${subject} to firestore:`, error);
           message.success(t('savefailed'));
         });
     });
@@ -261,9 +261,23 @@ export function LineReportPage() {
           scroll={{ x: 950 }}
           loading={loading}
           footer={() => (
-            <a onClick={() => data.errors?.length > 0 && setErrorVisible(true)}>
-              {t('founderror', { count: data.errors?.length || 0 })}
-            </a>
+            <Space size='large'>
+              <Link onClick={() => data.errors?.length > 0 && setErrorVisible(true)}>
+                {t('founderror', { count: data.errors?.length || 0 })}
+              </Link>
+              {screens.sm && (
+                <Link
+                  onClick={() =>
+                    data.rawdata?.length > 0 &&
+                    saveAs(
+                      new Blob([data.rawdata], { type: 'text/plain' }),
+                      `linereport-${subject}_${moment().format('YYYYMMDDHHmm')}.txt`
+                    )
+                  }>
+                  {t('linereport_download')}
+                </Link>
+              )}
+            </Space>
           )}>
           <Column
             title={t('line')}

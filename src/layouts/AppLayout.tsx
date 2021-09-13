@@ -9,7 +9,21 @@ import {
   SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Affix, Breadcrumb, Descriptions, Divider, Drawer, Empty, Layout, Menu, Space, Typography } from 'antd';
+import {
+  Affix,
+  Breadcrumb,
+  Button,
+  Descriptions,
+  Divider,
+  Drawer,
+  Empty,
+  Layout,
+  Menu,
+  Space,
+  Switch,
+  Typography,
+} from 'antd';
+import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import firebase from 'firebase/app';
 import 'firebase/database';
 import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
@@ -41,10 +55,11 @@ export function AppLayout({
   const [recentLocations, setRecentLocations] = useState([] as { name: string; url: string }[]);
 
   const { auth } = useContext(AuthContext);
-  const { setting } = useContext(SettingContext);
+  const { setting, changeDarkMode, changeLanguage } = useContext(SettingContext);
   const { t } = useTranslation();
   const location = useLocation();
   const history = useHistory();
+  const screens = useBreakpoint();
 
   let lastScrollY = 0;
   let lastScrollTime = 0;
@@ -204,6 +219,23 @@ export function AppLayout({
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
           <Space size='small'>
+            {screens.sm && (
+              <Fragment>
+                {setting.languageFastSwitch && (
+                  <Button shape='round' onClick={() => changeLanguage(setting.language === 'en' ? 'th' : 'en')}>
+                    {setting.language === 'en' ? 'ไทย' : 'EN'}
+                  </Button>
+                )}
+                {setting.darkModeFastSwitch && (
+                  <Switch
+                    checkedChildren='🌞'
+                    unCheckedChildren='🌜'
+                    checked={setting.darkMode}
+                    onClick={() => changeDarkMode(!setting.darkMode)}
+                  />
+                )}
+              </Fragment>
+            )}
             <MyHeaderIcon
               key={1}
               menu={1}

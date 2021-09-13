@@ -21,6 +21,7 @@ import {
   Setting,
   SettingContext,
 } from './ctx';
+import { GradingPage } from './pages/grading/GradingPage';
 import { HomePage } from './pages/HomePage';
 import { LineReportPage } from './pages/LineReportPage';
 import { LoginPage } from './pages/LoginPage';
@@ -38,6 +39,8 @@ const DARKMODE_KEY = 'darkmode';
 const AUTOHIDE_KEY = 'autohide';
 const AUTOHIDESENSE_KEY = 'autohidesense';
 const PERSISTENCE_KEY = 'persistence';
+const DARKMODEFAST_KEY = 'darkmodefast';
+const LANGUAGEFAST_KEY = 'languagefast';
 
 const BODY = document.querySelector('body');
 const THEMECOLOR = document.querySelector('meta[name="theme-color"]');
@@ -89,6 +92,8 @@ function App() {
   const [autoHide, setAutoHide] = useState(localStorage.get(AUTOHIDE_KEY) || true);
   const [persistence, setPersistence] = useState(localStorage.get(PERSISTENCE_KEY) || false);
   const [autoHideSensitivity, setAutoHideSensitivity] = useState(localStorage.get(AUTOHIDESENSE_KEY) || 10);
+  const [darkModeFastSwitch, setDarkModeFastSwitch] = useState(localStorage.get(DARKMODEFAST_KEY) || false);
+  const [languageFastSwitch, setLanguageFastSwitch] = useState(localStorage.get(LANGUAGEFAST_KEY) || false);
 
   const login: LoginFn = (user) => {
     const a = getAuth(user);
@@ -130,6 +135,9 @@ function App() {
     if (THEMECOLOR) {
       THEMECOLOR.setAttribute('content', dark ? '#000' : '#1890ff');
     }
+    ConfigProvider.config({
+      prefixCls: dark ? 'antdark' : 'ant',
+    });
   };
 
   useEffect(() => {
@@ -139,6 +147,8 @@ function App() {
     localStorage.set(AUTOHIDE_KEY, autoHide);
     localStorage.set(AUTOHIDESENSE_KEY, autoHideSensitivity);
     localStorage.set(PERSISTENCE_KEY, persistence);
+    localStorage.set(DARKMODEFAST_KEY, darkModeFastSwitch);
+    localStorage.set(LANGUAGEFAST_KEY, languageFastSwitch);
 
     switchTheme(darkMode);
 
@@ -160,6 +170,8 @@ function App() {
     autoHide,
     autoHideSensitivity,
     persistence,
+    darkModeFastSwitch,
+    languageFastSwitch,
   };
 
   const changeLanguage: ChangeStringFn = (value) => {
@@ -188,6 +200,14 @@ function App() {
     setPersistence(value);
     localStorage.set(PERSISTENCE_KEY, value);
   };
+  const changeDarkModeFastSwitch: ChangeBooleanFn = (value) => {
+    setDarkModeFastSwitch(value);
+    localStorage.set(DARKMODEFAST_KEY, value);
+  };
+  const changeLanguageFastSwitch: ChangeBooleanFn = (value) => {
+    setLanguageFastSwitch(value);
+    localStorage.set(LANGUAGEFAST_KEY, value);
+  };
 
   return (
     <SettingContext.Provider
@@ -199,6 +219,8 @@ function App() {
         changeAutoHide,
         changeAutoHideSensitivity,
         changePersistence,
+        changeDarkModeFastSwitch,
+        changeLanguageFastSwitch,
       }}>
       <SettingContext.Consumer>
         {({ setting }) => (
@@ -216,6 +238,9 @@ function App() {
                     <Route path='/logout'>
                       <LogoutPage />
                     </Route>
+                    <Route path='/apps/grading'>
+                      <GradingPage />
+                    </Route>
                     <Route path='/apps/linereport/:subject'>
                       <LineReportPage />
                     </Route>
@@ -228,9 +253,9 @@ function App() {
                     <PrivateRoute path='/profile'>
                       <ProfilePage />
                     </PrivateRoute>
-                    <PrivateRoute exact path='/'>
+                    <Route exact path='/'>
                       <HomePage />
-                    </PrivateRoute>
+                    </Route>
                     <Route path='*'>
                       <NotFoundPage />
                     </Route>

@@ -3,7 +3,8 @@ import 'jest';
 import path from 'path';
 import { LineReportService } from './linereport';
 
-const rawdata = fs.readFileSync(path.join(__dirname, 'linereport3.txt'), 'utf-8');
+const rawdata1 = fs.readFileSync(path.join(__dirname, 'linereport1.txt'), 'utf-8');
+const rawdata2 = fs.readFileSync(path.join(__dirname, 'linereport2.txt'), 'utf-8');
 
 const originalData = `abcdef
 2021.09.05 Sunday
@@ -34,11 +35,9 @@ const expectedData = `2021.09.05 Sunday
 17:54 5902033306 พรทิพย์ joined the chat.
 17:54 5902015345 ชลธิชา joined the chat.`;
 
-const service = new LineReportService(rawdata);
-
 test('process line report service', async () => {
-  const result = await service.process();
-  console.log(result.students);
+  const service = new LineReportService(rawdata1);
+  await service.process();
 });
 
 test('clean data', () => {
@@ -56,6 +55,7 @@ test('clean data', () => {
 });
 
 test('extract user and chat', () => {
+  const service = new LineReportService(rawdata2);
   expect(service._extractUser('08:02 6302027112 Surapong unsent a message.')).toBe('6302027112 Surapong');
   expect(service._extractUser('08:04 5902001550ณิชชากร 5902001550 ณิชชากร สู่สุข')).toBe('5902001550ณิชชากร');
   expect(service._extractUser('08:29 6002039011 ศุภราภรณ์ 6002039011 ศุภราภรณ์ สุวรรณพรม')).toBe(

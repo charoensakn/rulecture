@@ -1,13 +1,14 @@
 import { Col, Row, Space, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { AppBoxLayout } from '../layouts/AppBoxLayout';
 
 export function NotFoundPage() {
   const { t } = useTranslation();
+  const history = useHistory();
 
   return (
-    <AppBoxLayout>
+    <AppBoxLayout className='NotFoundPage'>
       <Space direction='vertical' size='large'>
         <Row>
           <Col span={24}>
@@ -16,7 +17,13 @@ export function NotFoundPage() {
         </Row>
         <Row>
           <Col span={24}>
-            <Link to={'/'}>{t('backtohome')}</Link>
+            {history.action === 'REPLACE' ? (
+              <Link to={'/'} replace>
+                {t('backtohome')}
+              </Link>
+            ) : (
+              <Typography.Link onClick={() => history.goBack()}>{t('backtoprevious')}</Typography.Link>
+            )}
           </Col>
         </Row>
       </Space>

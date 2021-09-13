@@ -47,7 +47,7 @@ export function SignedInPage() {
       <Row>
         <Col span={24}>
           <Link to={to} replace>
-            {t(to === '/' ? 'backtohome' : 'backtoprevious')}
+            <Typography.Link>{t(to === '/' ? 'backtohome' : 'backtoprevious')}</Typography.Link>
           </Link>
         </Col>
       </Row>
