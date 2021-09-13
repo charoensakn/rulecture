@@ -4,12 +4,12 @@ import os from 'os';
 import path from 'path';
 import { GradingService, KeyType } from './grading';
 
-const FILE_SIZE = 5;
+const FILE_SIZE = 10;
 const QUESTION_SIZE = 20;
 const CHOICE_SIZE = 5;
-const TEXT_SIZE = 128;
-const STUDENT_SIZE = 2000;
-const CORRECT_THRESHOLD = 0.5;
+const TEXT_SIZE = 80;
+const STUDENT_SIZE = 5000;
+const CORRECT_THRESHOLD = 0.4;
 
 const samplek1 =
   (fs.existsSync(path.join(__dirname, 'grading-k1.csv')) &&
@@ -128,7 +128,7 @@ test('grading sample 1', async () => {
   service.export();
 });
 
-test.skip('generate sample', () => {
+test.only('generate sample', () => {
   const source: any = {
     ประทับเวลา: '0000',
     ชื่อผู้ใช้: '0000',
