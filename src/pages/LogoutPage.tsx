@@ -19,7 +19,7 @@ export function LogoutPage() {
 
   return (
     <BoxLayout>
-      <Space direction='vertical' size='large'>
+      <Space direction="vertical" size="large">
         <Row>
           <Col span={24}>
             <Typography.Title level={5}>

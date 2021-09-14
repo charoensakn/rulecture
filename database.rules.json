@@ -1,6 +1,9 @@
 {
   /* Visit https://firebase.google.com/docs/database/security to learn more about security rules. */
   "rules": {
+    "serials": {
+      ".read": true
+    },
     "users": {
       "$uid": {
         ".read": "$uid === auth.uid",

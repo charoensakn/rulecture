@@ -1,11 +1,13 @@
-import { child, onChildAdded, push, serverTimestamp, set } from 'firebase/database';
-import { localStorage } from '../util';
+import { child, onChildAdded, onValue, push, remove, serverTimestamp, set } from '@firebase/database';
+import { flatObject, localStorage } from '../util';
 import { Database } from './Database';
 
 const CLIENTID_KEY = 'clientid';
 
-class DeviceDb {
-  async clientIdRef() {
+export type Device = { key: string; dev: string; timestamp: number };
+
+export class DeviceDb {
+  static async _clientIdRef() {
     const id = localStorage.get(CLIENTID_KEY);
     const ref = Database.devicesRef();
     if (ref) {
@@ -21,15 +23,42 @@ class DeviceDb {
     return null;
   }
 
-  async setClientId() {
-    const ref = await this.clientIdRef();
+  static async setClientId() {
+    const ref = await this._clientIdRef();
     if (ref) {
       return set(ref, {
         dev: window.navigator.userAgent,
-        datetime: serverTimestamp(),
+        timestamp: serverTimestamp(),
       });
     }
   }
-}
 
-export const deviceDb = new DeviceDb();
+  static onValue(fn: (value: Device[]) => void, onlyOnce = false) {
+    console.log(1);
+    const ref = Database.devicesRef();
+    if (ref) {
+      console.log(2);
+      return onValue(
+        ref,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            console.log(3);
+            const val = flatObject<Device>(snapshot.val()).sort((a, b) => b.timestamp - a.timestamp);
+            console.log(val);
+            fn(val);
+          }
+        },
+        { onlyOnce }
+      );
+    }
+    return null;
+  }
+
+  static async clear() {
+    const ref = Database.devicesRef();
+    if (ref) {
+      await remove(ref);
+      localStorage.remove(CLIENTID_KEY);
+    }
+  }
+}

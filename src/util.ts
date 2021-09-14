@@ -1,4 +1,6 @@
 import { useLocation } from 'react-router-dom';
+import { Material } from './db/MaterialFs';
+import { Notification } from './db/NotificationFs';
 
 export const localStorage = {
   set: (key: string, value: any) => {
@@ -76,10 +78,113 @@ export const numberFormat = (num: number, fraction = 4) => {
   return new Intl.NumberFormat('th-TH', { maximumFractionDigits: fraction }).format(num);
 };
 
-export const flatObject = (o: any) => {
+export const flatObject = <T>(o: any): T[] => {
   const list = [];
   for (const key in o) {
     list.push({ ...o[key], key });
   }
   return list;
 };
+
+const MATERIAL_TABLE = 'materials';
+const NOTIFICATION_TABLE = 'notifications';
+
+export class IndexedDB {
+  db: IDBDatabase | null = null;
+
+  static _createObjectStore(db: IDBDatabase, name: string) {
+    const objStore = db.createObjectStore(name, { keyPath: 'key' });
+    objStore.createIndex(`${name}_key`, 'key', { unique: true });
+  }
+
+  async open() {
+    this.db = await new Promise<IDBDatabase>((resolve, reject) => {
+      if (!window.indexedDB) {
+        reject('indexeddb not supported');
+      }
+      const request = window.indexedDB.open('rulecture-db');
+      request.onsuccess = () => {
+        const db = request.result;
+        resolve(db);
+      };
+      request.onerror = () => {
+        reject(request.error);
+      };
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        IndexedDB._createObjectStore(db, MATERIAL_TABLE);
+        IndexedDB._createObjectStore(db, NOTIFICATION_TABLE);
+      };
+    });
+  }
+
+  static _store(db: IDBDatabase | null, storeName: string, values: any[]) {
+    if (db) {
+      const tx = db.transaction(storeName, 'readwrite');
+      const o = tx.objectStore(storeName);
+      values.forEach((v) => {
+        o.add(v);
+      });
+      tx.commit();
+    }
+  }
+
+  storeMaterials(materials: (Material & { key: string })[]) {
+    IndexedDB._store(this.db, MATERIAL_TABLE, materials);
+  }
+
+  storeNotifications(notifications: (Notification & { key: string })[]) {
+    IndexedDB._store(this.db, NOTIFICATION_TABLE, notifications);
+  }
+
+  static _getAll(db: IDBDatabase | null, storeName: string) {
+    return new Promise<any>((resolve) => {
+      if (db) {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve([]);
+      }
+      resolve([]);
+    });
+  }
+
+  async getMaterials(): Promise<(Material & { key: string })[]> {
+    return IndexedDB._getAll(this.db, MATERIAL_TABLE);
+  }
+
+  async getNotifications(): Promise<(Notification & { key: string })[]> {
+    return IndexedDB._getAll(this.db, NOTIFICATION_TABLE);
+  }
+
+  async delete() {
+    return new Promise<void>((resolve, reject) => {
+      if (!window.indexedDB) {
+        reject('indexeddb not supported');
+      }
+      const request = window.indexedDB.deleteDatabase('rulecture-db');
+      request.onsuccess = () => {
+        resolve();
+      };
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
+
+  close() {
+    if (this.db) {
+      this.db.close();
+    }
+  }
+
+  clear() {
+    if (this.db) {
+      const tx = this.db.transaction([MATERIAL_TABLE, NOTIFICATION_TABLE], 'readwrite');
+      tx.objectStore(MATERIAL_TABLE).clear();
+      tx.objectStore(NOTIFICATION_TABLE).clear();
+      tx.commit();
+    }
+  }
+}

@@ -17,19 +17,14 @@ import {
   Typography,
 } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-import firebase from 'firebase/app';
-import 'firebase/database';
-import 'firebase/firestore';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Redirect, useLocation, useParams } from 'react-router';
-import { lineReportDb } from '../db/LineReportDb';
-import { recentLocationDb } from '../db/RecentLocationDb';
+import { useLocation, useParams } from 'react-router';
+import { LineReportFs, Result, Student } from '../db/LineReportFs';
+import { RecentLocationDb } from '../db/RecentLocationDb';
 import { AppLayout } from '../layouts/AppLayout';
-import { LineReportService, Result, Student } from '../services/linereport';
+import { LineReportService } from '../services/linereport';
 import './LineReportPage.less';
 
 const { Column } = Table;
@@ -51,10 +46,7 @@ export function LineReportPage() {
   const { t } = useTranslation();
   const screens = useBreakpoint();
   const location = useLocation();
-
-  if (t(`/${subject}`) === `/${subject}`) {
-    return <Redirect to='/pagenotfound' />;
-  }
+  const service = useRef<LineReportService | null>(null);
 
   const refreshStat = (students: Student[]) => {
     if (!students || students.length === 0) {
@@ -84,14 +76,16 @@ export function LineReportPage() {
   useEffect(() => {
     (async () => {
       try {
-        const doc = await lineReportDb.getResult(subject);
+        const doc = await LineReportFs.getResult(subject);
         if (doc.exists()) {
           const d = doc.data() as Result;
           if (d) {
-            setData(d);
+            service.current = new LineReportService(d.rawdata);
+            service.current.process().then((data) => {
+              setData(data);
+              refreshStat(data.students);
+            });
             console.log(`[linereport] get ${subject} from firestore`);
-            refreshStat(d.students);
-            return;
           }
         }
         console.log('[linereport] no saved data');
@@ -99,7 +93,7 @@ export function LineReportPage() {
         console.error(`[linereport] cannot get ${subject} from firestore:`, error);
       } finally {
         setLoading(false);
-        recentLocationDb.push(t('linereport_title', { subject: t(`/${subject}`) }), location.pathname);
+        RecentLocationDb.push(t('linereport_title', { subject: t(`/${subject}`) }), location.pathname);
       }
     })();
   }, [subject]);
@@ -110,12 +104,12 @@ export function LineReportPage() {
   };
 
   const handleImport = () => {
-    const service = new LineReportService(rawData, appended ? data.rawdata : undefined);
-    service.process().then(async (data) => {
+    service.current = new LineReportService(rawData, appended ? data.rawdata : undefined);
+    service.current.process().then(async (data) => {
       setData(data);
       refreshStat(data.students);
       try {
-        await lineReportDb.setResult(subject, data);
+        await LineReportFs.setResult(subject, data);
         console.log(`[linereport] set ${subject} to firestore`);
         message.success(t('savesuccess'));
       } catch (error) {
@@ -126,68 +120,6 @@ export function LineReportPage() {
     handleCancel();
   };
 
-  const handleExport = () => {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet(subject);
-    sheet.columns = [
-      { key: 'line', header: t('line'), width: 30, alignment: { vertical: 'middle', horizontal: 'left' } },
-      { key: 'studentid', header: t('studentid'), width: 20, alignment: { vertical: 'middle', horizontal: 'center' } },
-      { key: 'name', header: t('name'), width: 40, alignment: { vertical: 'middle', horizontal: 'left' } },
-      {
-        key: 'reportdate',
-        header: t('reportdate'),
-        width: 40,
-        alignment: { vertical: 'middle', horizontal: 'center' },
-      },
-    ];
-    sheet.getRow(1).height = 20;
-    for (let i = 0; i < data.students.length; i++) {
-      const d = data.students[i];
-      if (d) {
-        const row = sheet.getRow(i + 2);
-        row.height = 20;
-        row.values = {
-          line: d.lineId,
-          studentid: d.studentId,
-          name: d.name,
-          reportdate: d.datetime,
-        };
-      }
-    }
-    for (const i of ['A', 'B', 'C', 'D']) {
-      const cell = sheet.getCell(`${i}1`);
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-    }
-    for (let j = 0; j < data.students.length; j++) {
-      for (const i of ['A', 'B', 'C', 'D']) {
-        const cell = sheet.getCell(`${i}${j + 2}`);
-        if (j === data.students.length - 1) {
-          cell.border = {
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' },
-          };
-        } else {
-          cell.border = {
-            left: { style: 'thin' },
-            right: { style: 'thin' },
-          };
-        }
-      }
-    }
-    workbook.xlsx.writeBuffer().then((buffer) => {
-      saveAs(
-        new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-        `linereport-${subject}_${moment().format('YYYYMMDDHHmm')}.xlsx`
-      );
-    });
-  };
-
   const title = (
     <Row>
       <Col xs={12} sm={16}>
@@ -195,7 +127,7 @@ export function LineReportPage() {
           <Button onClick={() => setModalVisible(true)} icon={<ImportOutlined />}>
             {screens.sm && t('importdata')}
           </Button>
-          <Button onClick={handleExport} icon={<ExportOutlined />}>
+          <Button onClick={() => service.current?.export(subject, true)} icon={<ExportOutlined />}>
             {screens.sm && t('exporttoexcel')}
           </Button>
         </Space>
@@ -217,8 +149,8 @@ export function LineReportPage() {
   };
 
   return (
-    <AppLayout className='LineReportPage'>
-      <Space direction='vertical' size='large'>
+    <AppLayout className="LineReportPage">
+      <Space direction="vertical" size="large">
         <Title level={4}>{t('linereport_title', { subject: t(`/${subject}`) })}</Title>
         <Paragraph strong>{t('linereport_desc', { subject: t(`/${subject}`) })}</Paragraph>
         {data.start && data.end && (
@@ -229,7 +161,7 @@ export function LineReportPage() {
             })}
           </Paragraph>
         )}
-        <Row gutter={[16, 16]} className='LineReportPage__Stat'>
+        <Row gutter={[16, 16]} className="LineReportPage__Stat">
           {stat.map((s) => (
             <Col
               key={s.title}
@@ -251,61 +183,52 @@ export function LineReportPage() {
           )}
           title={() => title}
           bordered
-          rowKey='lineId'
+          rowKey="lineId"
           scroll={{ x: 950 }}
           loading={loading}
           footer={() => (
-            <Space size='large'>
+            <Space size="large">
               <Link onClick={() => data.errors?.length > 0 && setErrorVisible(true)}>
                 {t('founderror', { count: data.errors?.length || 0 })}
               </Link>
               {screens.sm && (
-                <Link
-                  onClick={() =>
-                    data.rawdata?.length > 0 &&
-                    saveAs(
-                      new Blob([data.rawdata], { type: 'text/plain' }),
-                      `linereport-${subject}_${moment().format('YYYYMMDDHHmm')}.txt`
-                    )
-                  }>
-                  {t('linereport_download')}
-                </Link>
+                <Link onClick={() => service.current?.saveAsRaw(subject)}>{t('linereport_download')}</Link>
               )}
             </Space>
           )}>
           <Column
             title={t('line')}
-            dataIndex='lineId'
-            key='lineId'
+            dataIndex="lineId"
+            key="lineId"
             sorter={(a: Student, b: Student) => a.lineId.localeCompare(b.lineId)}
-            fixed='left'
+            fixed="left"
             width={200}
           />
           <Column
             title={t('studentid')}
-            dataIndex='studentId'
-            key='studentId'
+            dataIndex="studentId"
+            key="studentId"
             sorter={(a: Student, b: Student) => a.studentId.localeCompare(b.studentId)}
-            align='center'
-            width='30%'
+            align="center"
+            width="30%"
           />
           <Column
             title={t('name')}
-            dataIndex='name'
-            key='name'
+            dataIndex="name"
+            key="name"
             sorter={(a: Student, b: Student) => a.name.localeCompare(b.name)}
-            width='40%'
+            width="40%"
           />
           <Column
             title={t('reportdate')}
-            dataIndex='datetime'
-            key='datetime'
-            align='center'
-            sorter={(a: Student, b: Student) => a.datetime.localeCompare(b.datetime)}
+            dataIndex="datetime"
+            key="datetime"
+            align="center"
+            sorter={(a: Student, b: Student) => a.timestamp.localeCompare(b.timestamp)}
             render={(_, record) => (
-              <Tooltip title={record.msg}>{moment(record.datetime).format('YYYY-MM-DD HH:mm')}</Tooltip>
+              <Tooltip title={record.msg}>{moment(record.timestamp).format('YYYY-MM-DD HH:mm')}</Tooltip>
             )}
-            width='30%'
+            width="30%"
           />
         </Table>
       </Space>
@@ -314,19 +237,19 @@ export function LineReportPage() {
         visible={errorVisible}
         onCancel={() => setErrorVisible(false)}
         footer={
-          <Button type='primary' onClick={() => setErrorVisible(false)}>
+          <Button type="primary" onClick={() => setErrorVisible(false)}>
             {t('close')}
           </Button>
         }
         width={screens.md ? 1000 : 520}>
-        <div className='LineReportPage__List'>
+        <div className="LineReportPage__List">
           <List
-            itemLayout='vertical'
+            itemLayout="vertical"
             dataSource={data.errors}
             split={false}
             renderItem={(item) => (
               <List.Item>
-                <List.Item.Meta title={item.msg} description={item.datetime} />
+                <List.Item.Meta title={item.msg} description={item.timestamp} />
               </List.Item>
             )}
           />
@@ -342,11 +265,11 @@ export function LineReportPage() {
           <Col xs={24}>
             <TextArea
               rows={10}
-              spellCheck='false'
-              autoCapitalize='false'
-              autoComplete='false'
-              autoCorrect='false'
-              autoSave='false'
+              spellCheck="false"
+              autoCapitalize="false"
+              autoComplete="false"
+              autoCorrect="false"
+              autoSave="false"
               value={rawData}
               onChange={(e) => setRawData(e.target.value)}
             />

@@ -8,7 +8,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingPage } from './pages/SettingPage';
 import { SignedInPage } from './pages/SignedInPage';
 
-export const route = [
+export const route: { path: string; page: JSX.Element; private?: boolean }[] = [
   {
     path: '/login',
     page: <LoginPage />,
@@ -16,6 +16,10 @@ export const route = [
   {
     path: '/logout',
     page: <LogoutPage />,
+  },
+  {
+    path: '/pagenotfound',
+    page: <NotFoundPage />,
   },
   {
     path: '/apps/grading',

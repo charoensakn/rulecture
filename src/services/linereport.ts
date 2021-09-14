@@ -1,4 +1,7 @@
+import ExcelJS from 'exceljs';
+import i18n from 'i18next';
 import moment from 'moment';
+import { Log, Result, Student } from '../db/LineReportFs';
 import { mergeString } from '../util';
 
 const DATE_PATTERN = /^(\d{4}\.\d{2}\.\d{2}) (?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/m;
@@ -6,16 +9,6 @@ const TIME_PATTERN = /^(\d{2}):(\d{2}) /m;
 const AUTOREPLY_PATTERN = /^\d{2}:\d{2} Auto-reply/;
 const STUDENTID_PATTERN = /([@]?\d{10})/;
 const MSG_PATTERN = /^.*[\s]+[\r\n]+/;
-
-export type Student = { lineId: string; studentId: string; name: string; msg: string; datetime: string };
-export type Log = { msg: string; datetime: string };
-export type Result = {
-  rawdata: string;
-  students: Student[];
-  errors: Log[];
-  start: string | null;
-  end: string | null;
-};
 
 export class LineReportService {
   rawdata: string;
@@ -254,16 +247,16 @@ export class LineReportService {
         }
       }
 
-      const datetime = moment(
+      const timestamp = moment(
         this._chatDate ? this._chatDate.format('YYYYMMDD') + line.substr(0, 5) : '2000010100:00',
         'YYYYMMDDHH:mm'
       ).toISOString(true);
       if (user && (studentId || name)) {
-        this.students.set(user, { lineId: user, studentId, name, msg: line, datetime });
+        this.students.set(user, { lineId: user, studentId, name, msg: line, timestamp });
       } else if (!user) {
-        this.errors.push({ msg: line, datetime });
+        this.errors.push({ msg: line, timestamp });
       }
-      this.end = datetime;
+      this.end = timestamp;
     }
 
     return {
@@ -273,5 +266,83 @@ export class LineReportService {
       start: this.start || null,
       end: this.end || null,
     };
+  }
+
+  export(subject: string, save = false) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(subject);
+    worksheet.columns = [
+      { key: 'line', header: i18n.t('line'), width: 30, alignment: { vertical: 'middle', horizontal: 'left' } },
+      {
+        key: 'studentid',
+        header: i18n.t('studentid'),
+        width: 20,
+        alignment: { vertical: 'middle', horizontal: 'center' },
+      },
+      { key: 'name', header: i18n.t('name'), width: 40, alignment: { vertical: 'middle', horizontal: 'left' } },
+      {
+        key: 'reportdate',
+        header: i18n.t('reportdate'),
+        width: 40,
+        alignment: { vertical: 'middle', horizontal: 'center' },
+      },
+    ];
+    worksheet.getRow(1).height = 20;
+    const it = this.students.values();
+    for (let i = 0, d = it.next(); !d.done; i++, d = it.next()) {
+      const { lineId: line, studentId: studentid, name, timestamp: reportdate } = d.value;
+      if (d) {
+        const row = worksheet.getRow(i + 2);
+        row.height = 20;
+        row.values = {
+          line,
+          studentid,
+          name,
+          reportdate,
+        };
+      }
+    }
+    for (const i of ['A', 'B', 'C', 'D']) {
+      const cell = worksheet.getCell(`${i}1`);
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+    }
+    for (let j = 0; j < this.students.size; j++) {
+      for (const i of ['A', 'B', 'C', 'D']) {
+        const cell = worksheet.getCell(`${i}${j + 2}`);
+        if (j === this.students.size - 1) {
+          cell.border = {
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        } else {
+          cell.border = {
+            left: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      }
+    }
+    if (save) {
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        saveAs(
+          new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+          `linereport-${subject}_${moment().format('YYYYMMDDHHmm')}.xlsx`
+        );
+      });
+    }
+    return workbook;
+  }
+
+  saveAsRaw(subject: string) {
+    saveAs(
+      new Blob([this.rawdata], { type: 'text/plain' }),
+      `linereport-${subject}_${moment().format('YYYYMMDDHHmm')}.txt`
+    );
   }
 }

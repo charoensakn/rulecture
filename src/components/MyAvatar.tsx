@@ -18,7 +18,7 @@ export function MyAvatar({ size = 'default', shape = 'circle' }: PropsWithoutRef
         }
         child = (
           <Avatar size={size} shape={shape}>
-            <span className='MyAvatar__Text' style={{ fontSize: fontSize > 0 ? `${fontSize}px` : undefined }}>
+            <span className="MyAvatar__Text" style={{ fontSize: fontSize > 0 ? `${fontSize}px` : undefined }}>
               {matches[1]}
             </span>
           </Avatar>
@@ -26,5 +26,5 @@ export function MyAvatar({ size = 'default', shape = 'circle' }: PropsWithoutRef
       }
     }
   }
-  return <div className='MyAvatar'>{child}</div>;
+  return <div className="MyAvatar">{child}</div>;
 }

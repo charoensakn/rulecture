@@ -1,6 +1,6 @@
 import { GoogleOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
-import { getAuth, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect } from '@firebase/auth';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { sessionStorage, useQuery } from '../util';
@@ -21,7 +21,7 @@ export function MyLoginButton() {
   });
 
   return (
-    <Button type='primary' icon={<GoogleOutlined />} onClick={() => signInWithRedirect(getAuth(), provider)}>
+    <Button type="primary" icon={<GoogleOutlined />} onClick={() => signInWithRedirect(getAuth(), provider)}>
       {t('login')}
     </Button>
   );

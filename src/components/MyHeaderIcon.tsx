@@ -25,10 +25,10 @@ export function MyHeaderIcon({
 }>) {
   const popup = (
     <Card
-      className='MyHeaderIcon__Content'
+      className="MyHeaderIcon__Content"
       title={title}
       extra={
-        <Button type='text' onClick={() => onClose && onClose()}>
+        <Button type="text" onClick={() => onClose && onClose()}>
           <CloseOutlined />
         </Button>
       }>
@@ -38,7 +38,7 @@ export function MyHeaderIcon({
 
   return (
     <Fragment>
-      <div className='MyHeaderIcon'>
+      <div className="MyHeaderIcon">
         <div className={avatar ? 'MyHeaderIcon__Avatar' : 'MyHeaderIcon__Button'} onClick={() => onClick && onClick()}>
           {icon}
         </div>

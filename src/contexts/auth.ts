@@ -1,4 +1,4 @@
-import { getAuth, User } from 'firebase/auth';
+import { getAuth, User } from '@firebase/auth';
 import { createContext } from 'react';
 import { localStorage } from '../util';
 
@@ -42,10 +42,12 @@ export type LogoutFn = () => Promise<void>;
 
 export const AuthContext = createContext<{
   authUser: AuthUser;
+  authGroups: string[];
   changeAuthUser: ChangeAuthUserFn;
   logout: LogoutFn;
 }>({
   authUser: localStorage.get(LASTLOGIN_KEY) || {},
+  authGroups: [],
   changeAuthUser: (authUser) => {
     localStorage.set(LASTLOGIN_KEY, authUser);
   },

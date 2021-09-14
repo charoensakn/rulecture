@@ -15,7 +15,7 @@ const LANGUAGEFAST_KEY = 'languagefast';
 const BODY = document.querySelector('body');
 const THEMECOLOR = document.querySelector('meta[name="theme-color"]');
 
-const switchTheme = (dark?: boolean) => {
+export const switchTheme = (dark?: boolean) => {
   if (BODY) {
     BODY.style.backgroundColor = dark ? 'rgb(0,0,0)' : 'rgb(240,242,245)';
   }

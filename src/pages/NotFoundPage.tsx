@@ -8,8 +8,8 @@ export function NotFoundPage() {
   const history = useHistory();
 
   return (
-    <AppBoxLayout className='NotFoundPage'>
-      <Space direction='vertical' size='large'>
+    <AppBoxLayout className="NotFoundPage">
+      <Space direction="vertical" size="large">
         <Row>
           <Col span={24}>
             <Typography.Title level={5}>{t('pagenotfound')}</Typography.Title>

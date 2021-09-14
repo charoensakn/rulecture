@@ -32,9 +32,9 @@ export function LoginPage() {
   const redirect = sessionStorage.get('redirect');
 
   return (
-    <BoxLayout className='LoginPage'>
-      <Space direction='vertical' size='large'>
-        <img className='LoginPage__Logo' src='/icons-192.png' alt='Logo' />
+    <BoxLayout className="LoginPage">
+      <Space direction="vertical" size="large">
+        <img className="LoginPage__Logo" src="/icons-192.png" alt="Logo" />
         <Title level={3}>RU Lecture</Title>
         <Title level={5}>{t('loginpage_appdesc')}</Title>
         {authUser.uid ? (
@@ -42,7 +42,7 @@ export function LoginPage() {
         ) : (
           <div>
             <div style={{ display: offline ? 'inherit' : 'none' }}>
-              <Text type='danger'>{t('loginpage_noconnection')}</Text>
+              <Text type="danger">{t('loginpage_noconnection')}</Text>
             </div>
             <div style={{ display: offline ? 'none' : 'inherit' }}>
               <MyLoginButton />

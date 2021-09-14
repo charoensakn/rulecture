@@ -1,4 +1,3 @@
-import { onValue } from '@firebase/database';
 import { Card, Col, Descriptions, Divider, Row, Space, Table, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import moment from 'moment';
@@ -8,48 +7,32 @@ import { Link } from 'react-router-dom';
 import { Center } from '../components/Center';
 import { MyAvatar } from '../components/MyAvatar';
 import { AuthContext } from '../contexts/auth';
-import { Database } from '../db/Database';
+import { Device, DeviceDb } from '../db/DeviceDb';
+import { Location, RecentLocationDb } from '../db/RecentLocationDb';
 import { AppLayout } from '../layouts/AppLayout';
-import { flatObject } from '../util';
 import './ProfilePage.less';
 
 const { Column } = Table;
 const { Title } = Typography;
 
-type Device = { id: string; dev: string; datetime: number };
-
 export function ProfilePage() {
-  const [recentLocations, setRecentLocations] = useState([]);
+  const [recentLocations, setRecentLocations] = useState([] as Location[]);
   const [devices, setDevices] = useState([] as Device[]);
 
   const screens = useBreakpoint();
   const { t } = useTranslation();
 
   useEffect(() => {
-    (async () => {
-      const db = Database.usersRef();
-      if (db) {
-        onValue(
-          db,
-          (snapshot) => {
-            if (snapshot.exists()) {
-              const val = snapshot.val();
-              if (val.recentLocations) {
-                setRecentLocations(val.recentLocations);
-              }
-              if (val.devices) {
-                setDevices(
-                  flatObject(val.devices).sort(
-                    (a: { datetime: number }, b: { datetime: number }) => b.datetime - a.datetime
-                  )
-                );
-              }
-            }
-          },
-          { onlyOnce: true }
-        );
-      }
-    })();
+    const locationUnsubscriber = RecentLocationDb.onValue((value) => {
+      setRecentLocations(value);
+    });
+    const deviceUnsubscriber = DeviceDb.onValue((value) => {
+      setDevices(value);
+    });
+    return () => {
+      locationUnsubscriber && locationUnsubscriber();
+      deviceUnsubscriber && deviceUnsubscriber();
+    };
   }, []);
 
   return (
@@ -97,8 +80,8 @@ export function ProfilePage() {
               {screens.sm && (
                 <Column
                   title={t('accessdate')}
-                  dataIndex="datetime"
-                  key="datetime"
+                  dataIndex="timestamp"
+                  key="timestamp"
                   width="35%"
                   align="center"
                   render={(value) => moment(value).format('YYYY-MM-DD HH:mm')}
@@ -125,8 +108,8 @@ export function ProfilePage() {
               {screens.sm && (
                 <Column
                   title={t('lastlogin')}
-                  dataIndex="datetime"
-                  key="datetime"
+                  dataIndex="timestamp"
+                  key="timestamp"
                   width="35%"
                   align="center"
                   render={(value) => moment(value).format('YYYY-MM-DD HH:mm')}

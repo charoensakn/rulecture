@@ -11,7 +11,6 @@ import {
 } from '@ant-design/icons';
 import { Affix, Breadcrumb, Descriptions, Divider, Drawer, Empty, Layout, Menu, Space, Switch, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
-import { onValue, Unsubscribe } from 'firebase/database';
 import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useHistory, useLocation } from 'react-router-dom';
@@ -21,7 +20,7 @@ import { MyFooter } from '../components/MyFooter';
 import { MyHeaderIcon } from '../components/MyHeaderIcon';
 import { AuthContext } from '../contexts/auth';
 import { SettingContext } from '../contexts/setting';
-import { Database } from '../db/Database';
+import { Location, RecentLocationDb } from '../db/RecentLocationDb';
 import './AppLayout.less';
 
 const { Header, Content } = Layout;
@@ -40,7 +39,7 @@ export function AppLayout({
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [informationText, setInformationText] = useState('');
   const [activeMenu, setActiveMenu] = useState(0);
-  const [recentLocations, setRecentLocations] = useState([] as { name: string; url: string }[]);
+  const [recentLocations, setRecentLocations] = useState([] as Location[]);
 
   const { authUser } = useContext(AuthContext);
   const { setting, changeDarkMode, changeLanguage } = useContext(SettingContext);
@@ -85,15 +84,9 @@ export function AppLayout({
     /**
      * recent locations
      */
-    let handleValue: Unsubscribe | null = null;
-    const recentLocationsRef = Database.recentLocationsRef();
-    if (recentLocationsRef) {
-      handleValue = onValue(recentLocationsRef, (snapshot) => {
-        if (snapshot.exists()) {
-          setRecentLocations(snapshot.val() || []);
-        }
-      });
-    }
+    const unsubscriber = RecentLocationDb.onValue((value) => {
+      setRecentLocations(value);
+    });
 
     window.addEventListener('scroll', handleScroll);
     /**
@@ -105,7 +98,7 @@ export function AppLayout({
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
-      if (handleValue) handleValue();
+      unsubscriber && unsubscriber();
     };
   }, [authUser.uid, headerShowed]);
 
@@ -128,21 +121,21 @@ export function AppLayout({
   const links: JSX.Element[] = [];
   if (windowWidth >= 768 && pathnames.length > 1 && pathnames[pathnames.length - 1]) {
     links.push(
-      <Breadcrumb.Item key={'home'} className='AppLayout__Link'>
-        <Link to='/'>{t('/')}</Link>
+      <Breadcrumb.Item key={'home'} className="AppLayout__Link">
+        <Link to="/">{t('/')}</Link>
       </Breadcrumb.Item>
     );
   }
   if (windowWidth >= 576 && parentLink && parent) {
     links.push(
-      <Breadcrumb.Item key={'submenu'} className='AppLayout__Link'>
+      <Breadcrumb.Item key={'submenu'} className="AppLayout__Link">
         <Link to={parentLink}>{parent}</Link>
       </Breadcrumb.Item>
     );
   }
   if (current) {
     links.push(
-      <Breadcrumb.Item key={'current'} className='AppLayout__Link--current'>
+      <Breadcrumb.Item key={'current'} className="AppLayout__Link--current">
         {current}
       </Breadcrumb.Item>
     );
@@ -151,7 +144,7 @@ export function AppLayout({
   const noti = <Empty description={t('noti_nodata')} />;
 
   const account = (
-    <div className='AppLayout__PopoverMenu'>
+    <div className="AppLayout__PopoverMenu">
       {windowHeight >= 576 && (
         <Fragment>
           <p>
@@ -161,19 +154,19 @@ export function AppLayout({
         </Fragment>
       )}
       <Menu>
-        <Menu.Item key='profile' icon={<UserOutlined />}>
-          <Link to='/profile'>{t('profile')}</Link>
+        <Menu.Item key="profile" icon={<UserOutlined />}>
+          <Link to="/profile">{t('profile')}</Link>
         </Menu.Item>
-        <Menu.Item key='setting' icon={<SettingOutlined />}>
-          <Link to='/setting'>{t('setting')}</Link>
+        <Menu.Item key="setting" icon={<SettingOutlined />}>
+          <Link to="/setting">{t('setting')}</Link>
         </Menu.Item>
         {authUser.uid ? (
-          <Menu.Item key='logout' icon={<LogoutOutlined />}>
-            <Link to='/logout'>{t('logout')}</Link>
+          <Menu.Item key="logout" icon={<LogoutOutlined />}>
+            <Link to="/logout">{t('logout')}</Link>
           </Menu.Item>
         ) : (
-          <Menu.Item key='login' icon={<LoginOutlined />}>
-            <Link to='/login'>{t('login')}</Link>
+          <Menu.Item key="login" icon={<LoginOutlined />}>
+            <Link to="/login">{t('login')}</Link>
           </Menu.Item>
         )}
       </Menu>
@@ -181,10 +174,10 @@ export function AppLayout({
   );
 
   return (
-    <Layout className='AppLayout'>
+    <Layout className="AppLayout">
       <Affix className={headerShowed ? '' : 'AppLayout__Header--hide'}>
-        <Header className='AppLayout__Header'>
-          <Space size='small' className='AppLayout__Fill'>
+        <Header className="AppLayout__Header">
+          <Space size="small" className="AppLayout__Fill">
             <MyHeaderIcon
               icon={<MenuOutlined />}
               onClick={() => {
@@ -201,27 +194,27 @@ export function AppLayout({
                 }}
               />
             ) : (
-              <Link to='/'>
+              <Link to="/">
                 <MyHeaderIcon icon={<HomeFilled />} onClick={() => setActiveMenu(0)} />
               </Link>
             )}
             <Breadcrumb>{links}</Breadcrumb>
           </Space>
-          <Space size='small'>
+          <Space size="small">
             {screens.sm && (
               <Fragment>
                 {setting.languageFastSwitch && (
                   <Switch
-                    checkedChildren='🇹🇭'
-                    unCheckedChildren='🇺🇸'
+                    checkedChildren="🇹🇭"
+                    unCheckedChildren="🇺🇸"
                     checked={setting.language === 'en'}
                     onClick={() => changeLanguage(setting.language === 'en' ? 'th' : 'en')}
                   />
                 )}
                 {setting.darkModeFastSwitch && (
                   <Switch
-                    checkedChildren='🌞'
-                    unCheckedChildren='🌜'
+                    checkedChildren="🌞"
+                    unCheckedChildren="🌜"
                     checked={setting.darkMode}
                     onClick={() => changeDarkMode(!setting.darkMode)}
                   />
@@ -237,7 +230,7 @@ export function AppLayout({
               windowWidth={windowWidth}
               onClick={() => setActiveMenu(1)}
               onClose={() => setActiveMenu(0)}>
-              <Descriptions bordered size='small' column={1}>
+              <Descriptions bordered size="small" column={1}>
                 <Descriptions.Item label={t('name')}>{packageJson.description}</Descriptions.Item>
                 <Descriptions.Item label={t('version')}>{packageJson.version}</Descriptions.Item>
               </Descriptions>
@@ -279,26 +272,26 @@ export function AppLayout({
       </Content>
       <MyFooter />
       <Drawer
-        className='AppLayout__Drawer'
+        className="AppLayout__Drawer"
         title={t('applayout_drawer_title')}
-        placement='left'
+        placement="left"
         closable
         onClose={() => setDrawerShowed(false)}
         visible={drawerShowed}>
         <Title level={5}>
-          <Link to='/'>{t('/')}</Link>
+          <Link to="/">{t('/')}</Link>
         </Title>
         <Title level={5}>
-          <Link to='/subjects'>{t('/subjects')}</Link>
+          <Link to="/subjects">{t('/subjects')}</Link>
         </Title>
         <Title level={5}>
-          <Link to='/books'>{t('/books')}</Link>
+          <Link to="/books">{t('/books')}</Link>
         </Title>
         <Title level={5}>
-          <Link to='/lectures'>{t('/lectures')}</Link>
+          <Link to="/lectures">{t('/lectures')}</Link>
         </Title>
         <Title level={5}>
-          <Link to='/apps'>{t('/apps')}</Link>
+          <Link to="/apps">{t('/apps')}</Link>
         </Title>
         {recentLocations && recentLocations.length > 0 && (
           <Fragment>

@@ -7,8 +7,8 @@ const { Content } = Layout;
 
 export function BoxLayout({ className, children }: PropsWithChildren<{ className?: string }>) {
   return (
-    <Layout className='BoxLayout'>
-      <Content className='BoxLayout__Content'>
+    <Layout className="BoxLayout">
+      <Content className="BoxLayout__Content">
         <Card>
           <div className={className}>{children}</div>
         </Card>

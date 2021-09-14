@@ -29,17 +29,17 @@ export function SignedInPage() {
   vals[t('phone')] = authUser.phoneNumber;
 
   return (
-    <BoxLayout className='SignedInPage'>
-      <Space className='SignedInPage__Space' direction='vertical' size='large'>
+    <BoxLayout className="SignedInPage">
+      <Space className="SignedInPage__Space" direction="vertical" size="large">
         <MyAvatar size={72} />
         <Typography.Title level={5}>{authUser.displayName}</Typography.Title>
         <Divider />
         {Object.keys(vals).map((key) => (
           <Row key={key}>
-            <Col className='SignedInPage__Label' xs={24} sm={8}>
+            <Col className="SignedInPage__Label" xs={24} sm={8}>
               {key}
             </Col>
-            <Col className='SignedInPage__Value' xs={24} sm={16}>
+            <Col className="SignedInPage__Value" xs={24} sm={16}>
               {vals[key] || '-'}
             </Col>
           </Row>
