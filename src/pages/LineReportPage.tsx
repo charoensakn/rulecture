@@ -23,10 +23,11 @@ import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/firestore';
 import moment from 'moment';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Redirect, useLocation, useParams } from 'react-router';
-import { AuthContext } from '../ctx';
+import { lineReportDb } from '../db/LineReportDb';
+import { recentLocationDb } from '../db/RecentLocationDb';
 import { AppLayout } from '../layouts/AppLayout';
 import { LineReportService, Result, Student } from '../services/linereport';
 import './LineReportPage.less';
@@ -50,7 +51,6 @@ export function LineReportPage() {
   const { t } = useTranslation();
   const screens = useBreakpoint();
   const location = useLocation();
-  const { pushRecentLocation } = useContext(AuthContext);
 
   if (t(`/${subject}`) === `/${subject}`) {
     return <Redirect to='/pagenotfound' />;
@@ -84,9 +84,8 @@ export function LineReportPage() {
   useEffect(() => {
     (async () => {
       try {
-        const docRef = firebase.firestore().collection(`linereport`).doc(subject);
-        const doc = await docRef.get();
-        if (doc.exists) {
+        const doc = await lineReportDb.getResult(subject);
+        if (doc.exists()) {
           const d = doc.data() as Result;
           if (d) {
             setData(d);
@@ -100,7 +99,7 @@ export function LineReportPage() {
         console.error(`[linereport] cannot get ${subject} from firestore:`, error);
       } finally {
         setLoading(false);
-        pushRecentLocation(t('linereport_title', { subject: t(`/${subject}`) }), location.pathname);
+        recentLocationDb.push(t('linereport_title', { subject: t(`/${subject}`) }), location.pathname);
       }
     })();
   }, [subject]);
@@ -112,22 +111,17 @@ export function LineReportPage() {
 
   const handleImport = () => {
     const service = new LineReportService(rawData, appended ? data.rawdata : undefined);
-    service.process().then((data) => {
+    service.process().then(async (data) => {
       setData(data);
       refreshStat(data.students);
-      return firebase
-        .firestore()
-        .collection(`linereport`)
-        .doc(subject)
-        .set(data)
-        .then(() => {
-          console.log(`[linereport] set ${subject} to firestore`);
-          message.success(t('savesuccess'));
-        })
-        .catch((error) => {
-          console.error(`[linereport] cannot set ${subject} to firestore:`, error);
-          message.success(t('savefailed'));
-        });
+      try {
+        await lineReportDb.setResult(subject, data);
+        console.log(`[linereport] set ${subject} to firestore`);
+        message.success(t('savesuccess'));
+      } catch (error) {
+        console.error(`[linereport] cannot set ${subject} to firestore:`, error);
+        message.error(t('savefailed'));
+      }
     });
     handleCancel();
   };

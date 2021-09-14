@@ -23,7 +23,7 @@ export const sessionStorage = {
     }
   },
   get: (key: string) => {
-    return window.sessionStorage ? JSON.parse(window.localStorage.getItem(key) || 'null') : null;
+    return window.sessionStorage ? JSON.parse(window.sessionStorage.getItem(key) || 'null') : null;
   },
   remove: (key: string) => {
     if (window.sessionStorage) {

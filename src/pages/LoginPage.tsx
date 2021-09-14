@@ -3,9 +3,9 @@ import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Redirect } from 'react-router-dom';
 import { MyLoginButton } from '../components/MyLoginButton';
-import { AuthContext } from '../ctx';
+import { AuthContext } from '../contexts/auth';
 import { BoxLayout } from '../layouts/BoxLayout';
-import { useQuery } from '../util';
+import { sessionStorage, useQuery } from '../util';
 import './LoginPage.less';
 
 const { Text, Title } = Typography;
@@ -13,19 +13,23 @@ const { Text, Title } = Typography;
 export function LoginPage() {
   const [offline, setOffline] = useState(false);
 
-  const { auth, login } = useContext(AuthContext);
+  const { authUser } = useContext(AuthContext);
   const q = useQuery();
   const { t } = useTranslation();
 
   useEffect(() => {
-    (async () => {
-      try {
-        await fetch('https://connectivitycheck.gstatic.com/generate_204', { mode: 'no-cors' });
-      } catch {
-        setOffline(true);
-      }
-    })();
-  }, []);
+    if (!authUser.uid && !offline) {
+      (async () => {
+        try {
+          await fetch('https://connectivitycheck.gstatic.com/generate_204', { mode: 'no-cors' });
+        } catch {
+          setOffline(true);
+        }
+      })();
+    }
+  });
+
+  const redirect = sessionStorage.get('redirect');
 
   return (
     <BoxLayout className='LoginPage'>
@@ -33,8 +37,8 @@ export function LoginPage() {
         <img className='LoginPage__Logo' src='/icons-192.png' alt='Logo' />
         <Title level={3}>RU Lecture</Title>
         <Title level={5}>{t('loginpage_appdesc')}</Title>
-        {auth.uid ? (
-          <Redirect to={{ pathname: '/signed-in', search: `redirect=${q.get('redirect')}` }} />
+        {authUser.uid ? (
+          <Redirect to={{ pathname: '/signed-in', search: redirect ? `redirect=${redirect}` : undefined }} />
         ) : (
           <div>
             <div style={{ display: offline ? 'inherit' : 'none' }}>

@@ -2,7 +2,7 @@ import { Card, Col, Radio, Row, Slider, Space, Switch, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SettingContext } from '../ctx';
+import { SettingContext } from '../contexts/setting';
 import { AppLayout } from '../layouts/AppLayout';
 import './SettingPage.less';
 

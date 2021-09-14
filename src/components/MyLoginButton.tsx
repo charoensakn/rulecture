@@ -1,29 +1,28 @@
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import React from 'react';
-import { StyledFirebaseAuth } from 'react-firebaseui';
-import { useQuery } from '../util';
+import { GoogleOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import { getAuth, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { sessionStorage, useQuery } from '../util';
+
+const provider = new GoogleAuthProvider();
+provider.addScope('profile');
+provider.addScope('email');
+provider.setCustomParameters({
+  prompt: 'select_account',
+});
 
 export function MyLoginButton() {
   const q = useQuery();
-  const uiConfig: firebaseui.auth.Config = {
-    signInFlow: 'redirect',
-    signInSuccessUrl: `/login?redirect=${q.get('redirect')}`,
-    credentialHelper: 'none',
-    autoUpgradeAnonymousUsers: false,
-    immediateFederatedRedirect: false,
-    signInOptions: [
-      {
-        provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-        scopes: [
-          'https://www.googleapis.com/auth/userinfo.email', //
-          'https://www.googleapis.com/auth/userinfo.profile',
-        ],
-        customParameters: {
-          prompt: 'select_account',
-        },
-      },
-    ],
-  };
-  return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />;
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    sessionStorage.set('redirect', q.get('redirect'));
+  });
+
+  return (
+    <Button type='primary' icon={<GoogleOutlined />} onClick={() => signInWithRedirect(getAuth(), provider)}>
+      {t('login')}
+    </Button>
+  );
 }

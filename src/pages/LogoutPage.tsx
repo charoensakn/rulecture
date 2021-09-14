@@ -2,7 +2,7 @@ import { Col, Row, Space, Typography } from 'antd';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../ctx';
+import { AuthContext } from '../contexts/auth';
 import { BoxLayout } from '../layouts/BoxLayout';
 
 export function LogoutPage() {

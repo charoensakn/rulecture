@@ -24,8 +24,7 @@ import {
   Typography,
 } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
-import firebase from 'firebase/app';
-import 'firebase/database';
+import { onValue, Unsubscribe } from 'firebase/database';
 import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useHistory, useLocation } from 'react-router-dom';
@@ -33,7 +32,9 @@ import packageJson from '../../package.json';
 import { MyAvatar } from '../components/MyAvatar';
 import { MyFooter } from '../components/MyFooter';
 import { MyHeaderIcon } from '../components/MyHeaderIcon';
-import { AuthContext, SettingContext } from '../ctx';
+import { AuthContext } from '../contexts/auth';
+import { SettingContext } from '../contexts/setting';
+import { Database } from '../db/Database';
 import './AppLayout.less';
 
 const { Header, Content } = Layout;
@@ -54,7 +55,7 @@ export function AppLayout({
   const [activeMenu, setActiveMenu] = useState(0);
   const [recentLocations, setRecentLocations] = useState([] as { name: string; url: string }[]);
 
-  const { auth } = useContext(AuthContext);
+  const { authUser } = useContext(AuthContext);
   const { setting, changeDarkMode, changeLanguage } = useContext(SettingContext);
   const { t } = useTranslation();
   const location = useLocation();
@@ -97,16 +98,17 @@ export function AppLayout({
     /**
      * recent locations
      */
-    const recentLocationsRef = firebase.database().ref(`users/${auth.uid}/recentLocations`);
-    window.addEventListener('scroll', handleScroll);
-    let handleValue: any = null;
-    if (auth.uid) {
-      handleValue = recentLocationsRef.on('value', (snapshot) => {
+    let handleValue: Unsubscribe | null = null;
+    const recentLocationsRef = Database.recentLocationsRef();
+    if (recentLocationsRef) {
+      handleValue = onValue(recentLocationsRef, (snapshot) => {
         if (snapshot.exists()) {
           setRecentLocations(snapshot.val() || []);
         }
       });
     }
+
+    window.addEventListener('scroll', handleScroll);
     /**
      * check installed pwa
      */
@@ -116,9 +118,9 @@ export function AppLayout({
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
-      if (handleValue) recentLocationsRef.off('value', handleValue);
+      if (handleValue) handleValue();
     };
-  }, [auth.uid, headerShowed]);
+  }, [authUser.uid, headerShowed]);
 
   const pathnames = location.pathname.split(/\/+/);
   let parentLink = '';
@@ -166,9 +168,9 @@ export function AppLayout({
       {windowHeight >= 576 && (
         <Fragment>
           <p>
-            <strong>{auth.uid ? auth.displayName : t('guest')}</strong>
+            <strong>{authUser.uid ? authUser.displayName : t('guest')}</strong>
           </p>
-          <p>{auth.uid && auth.email}</p>
+          <p>{authUser.uid && authUser.email}</p>
         </Fragment>
       )}
       <Menu>
@@ -178,7 +180,7 @@ export function AppLayout({
         <Menu.Item key='setting' icon={<SettingOutlined />}>
           <Link to='/setting'>{t('setting')}</Link>
         </Menu.Item>
-        {auth.uid ? (
+        {authUser.uid ? (
           <Menu.Item key='logout' icon={<LogoutOutlined />}>
             <Link to='/logout'>{t('logout')}</Link>
           </Menu.Item>

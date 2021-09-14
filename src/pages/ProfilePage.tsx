@@ -1,16 +1,16 @@
+import { onValue } from '@firebase/database';
 import { Card, Col, Descriptions, Divider, Row, Space, Table, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
+import moment from 'moment';
 import React, { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { Center } from '../components/Center';
 import { MyAvatar } from '../components/MyAvatar';
-import { AuthContext } from '../ctx';
+import { AuthContext } from '../contexts/auth';
+import { Database } from '../db/Database';
 import { AppLayout } from '../layouts/AppLayout';
 import './ProfilePage.less';
-import firebase from 'firebase/app';
-import 'firebase/database';
-import { Link } from 'react-router-dom';
-import moment from 'moment';
 
 const { Column } = Table;
 const { Title } = Typography;
@@ -21,27 +21,37 @@ export function ProfilePage() {
   const [recentLocations, setRecentLocations] = useState([]);
   const [devices, setDevices] = useState([] as Device[]);
 
-  const { auth } = useContext(AuthContext);
+  const { authUser: auth } = useContext(AuthContext);
   const screens = useBreakpoint();
   const { t } = useTranslation();
 
   useEffect(() => {
     (async () => {
-      const db = firebase.database().ref(`users/${auth.uid}`);
-      const snapshot = await db.get();
-      if (snapshot.exists()) {
-        const val = snapshot.val();
-        if (val.recentLocations) {
-          setRecentLocations(val.recentLocations);
-        }
-        if (val.devices) {
-          const list: Device[] = [];
-          for (const k in val.devices) {
-            list.push({ id: k, dev: val.devices[k].dev, datetime: val.devices[k].datetime });
-          }
-          list.sort((a, b) => b.datetime - a.datetime);
-          setDevices(list);
-        }
+      const db = Database.usersRef();
+      if (db) {
+        onValue(
+          db,
+          (snapshot) => {
+            if (snapshot.exists()) {
+              const val = snapshot.val();
+              if (val.recentLocations) {
+                setRecentLocations(val.recentLocations);
+              }
+              if (val.devices) {
+                setDevices(
+                  val.devices
+                    .map((v: { dev: string; datetime: number }, id: string) => ({
+                      id,
+                      dev: v.dev,
+                      datetime: v.datetime,
+                    }))
+                    .sort((a: { datetime: number }, b: { datetime: number }) => b.datetime - a.datetime)
+                );
+              }
+            }
+          },
+          { onlyOnce: true }
+        );
       }
     })();
   }, []);

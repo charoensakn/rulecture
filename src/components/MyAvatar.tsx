@@ -1,20 +1,26 @@
 import { UserOutlined } from '@ant-design/icons';
 import { Avatar, AvatarProps } from 'antd';
 import React, { PropsWithoutRef, useContext } from 'react';
-import { AuthContext } from '../ctx';
+import { AuthContext } from '../contexts/auth';
 
 export function MyAvatar({ size = 'default', shape = 'circle' }: PropsWithoutRef<AvatarProps>) {
-  const { auth } = useContext(AuthContext);
+  const { authUser } = useContext(AuthContext);
   let child = <Avatar icon={<UserOutlined />} size={size} shape={shape} />;
-  if (auth.uid) {
-    if (auth.photoURL) {
-      child = <Avatar src={auth.photoURL} size={size} shape={shape} />;
+  if (authUser.uid) {
+    if (authUser.photoURL) {
+      child = <Avatar src={authUser.photoURL} size={size} shape={shape} />;
     } else {
-      const matches = auth.displayName?.match(/([A-Z])/);
+      const matches = authUser.displayName?.match(/([A-Z])/);
       if (matches) {
+        let fontSize = 0;
+        if (typeof size === 'number') {
+          fontSize = size / 2;
+        }
         child = (
           <Avatar size={size} shape={shape}>
-            <span className='MyAvatar__Text'>{matches[1]}</span>
+            <span className='MyAvatar__Text' style={{ fontSize: fontSize > 0 ? `${fontSize}px` : undefined }}>
+              {matches[1]}
+            </span>
           </Avatar>
         );
       }
