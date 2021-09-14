@@ -60,7 +60,7 @@ const initApp = async () => {
 
   await i18n.use(initReactI18next).init({
     resources,
-    lng: 'th',
+    lng: localStorage.get('lang') || 'th',
     interpolation: {
       escapeValue: false,
     },

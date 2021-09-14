@@ -21,7 +21,7 @@ function App() {
     defaultAuthContext.changeAuthUser(authUser);
   };
 
-  const [setting, setSetting] = useState(defaultSettingContext.setting);
+  const [setting, setSetting] = useState({ ...defaultSettingContext.setting });
   const changeLanguage: ChangeStringFn = (language) => {
     setSetting({ ...setting, language });
     defaultSettingContext.changeLanguage(language);
@@ -83,7 +83,7 @@ function App() {
         <ConfigProvider
           locale={setting.language === 'en' ? enUS : thTH}
           prefixCls={setting.darkMode ? 'antdark' : 'ant'}>
-          <div className='App'>
+          <div className="App">
             <Router>
               <ScrollToTop />
               <Switch>
@@ -101,7 +101,7 @@ function App() {
                       }
                     />
                   ) : (
-                    <Route key={r.path} path={r.path}>
+                    <Route key={r.path} path={r.path} exact={r.path === '/'}>
                       {r.page}
                     </Route>
                   )

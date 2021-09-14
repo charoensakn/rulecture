@@ -9,20 +9,7 @@ import {
   SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import {
-  Affix,
-  Breadcrumb,
-  Button,
-  Descriptions,
-  Divider,
-  Drawer,
-  Empty,
-  Layout,
-  Menu,
-  Space,
-  Switch,
-  Typography,
-} from 'antd';
+import { Affix, Breadcrumb, Descriptions, Divider, Drawer, Empty, Layout, Menu, Space, Switch, Typography } from 'antd';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import { onValue, Unsubscribe } from 'firebase/database';
 import React, { Fragment, PropsWithChildren, useContext, useEffect, useState } from 'react';
@@ -224,9 +211,12 @@ export function AppLayout({
             {screens.sm && (
               <Fragment>
                 {setting.languageFastSwitch && (
-                  <Button shape='round' onClick={() => changeLanguage(setting.language === 'en' ? 'th' : 'en')}>
-                    {setting.language === 'en' ? 'ไทย' : 'EN'}
-                  </Button>
+                  <Switch
+                    checkedChildren='🇹🇭'
+                    unCheckedChildren='🇺🇸'
+                    checked={setting.language === 'en'}
+                    onClick={() => changeLanguage(setting.language === 'en' ? 'th' : 'en')}
+                  />
                 )}
                 {setting.darkModeFastSwitch && (
                   <Switch

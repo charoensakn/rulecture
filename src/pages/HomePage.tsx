@@ -29,12 +29,12 @@ export function HomePage() {
   ];
 
   return (
-    <AppLayout className='HomePage'>
+    <AppLayout className="HomePage">
       <Title level={3}>{t('apps')}</Title>
       <Row gutter={[16, 16]}>
         {apps.map((app) => (
           <Col key={app.link} xs={24} sm={12} md={8} lg={6}>
-            <div className='HomePage__Container'>
+            <div className="HomePage__Container">
               <Link to={app.link}>
                 <Card title={app.title}>
                   <Text>{app.desc}</Text>

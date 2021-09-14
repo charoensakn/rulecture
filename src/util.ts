@@ -75,3 +75,11 @@ export const numberFormat = (num: number, fraction = 4) => {
   }
   return new Intl.NumberFormat('th-TH', { maximumFractionDigits: fraction }).format(num);
 };
+
+export const flatObject = (o: any) => {
+  const list = [];
+  for (const key in o) {
+    list.push({ ...o[key], key });
+  }
+  return list;
+};

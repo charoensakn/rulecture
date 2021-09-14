@@ -9,7 +9,7 @@ export function AppBoxLayout({ className, children }: PropsWithChildren<{ classN
   const { authUser } = useContext(AuthContext);
   return authUser.uid ? (
     <AppLayout className={className}>
-      <Card className='AppBoxLayout--wrapper'>{children}</Card>
+      <Card className="AppBoxLayout--wrapper">{children}</Card>
     </AppLayout>
   ) : (
     <BoxLayout className={className}>{children}</BoxLayout>
